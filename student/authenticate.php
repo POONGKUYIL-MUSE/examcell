@@ -27,6 +27,8 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
                 $_SESSION['email'] = $row['email'];
                 $_SESSION['firstname'] = $row['firstname'];
                 $_SESSION['lastname'] = $row['lastname'];
+                $_SESSION['student_department'] = $row['student_department'];
+                $_SESSION['student_batch'] = $row['student_batch'];
                 $_SESSION['student'] = 1;
                 
                 header("Location: dashboard.php");

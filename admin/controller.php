@@ -882,15 +882,15 @@ if (isset($_POST['save_halls'])) {
 
 
 
-    // if ($j == $total_query) {
-    //     $_SESSION['message'] = "Halls Added Successfully";
-    //     header("Location: halls.php");
-    //     exit(0);
-    // } else {
-    //     $_SESSION['message'] = "Hall Not Added";
-    //     header("Location: hall_create_edit.php");
-    //     exit(0);
-    // }
+    if ($j == $total_query) {
+        $_SESSION['message'] = "Halls Added Successfully";
+        header("Location: halls.php");
+        exit(0);
+    } else {
+        $_SESSION['message'] = "Hall Not Added";
+        header("Location: hall_create_edit.php");
+        exit(0);
+    }
 }
 
 if (isset($_POST['get_hall_data'])) {
