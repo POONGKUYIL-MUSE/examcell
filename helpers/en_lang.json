@@ -1,0 +1,9 @@
+{
+    "english": {
+        "incorrect_creds": "Email or Password is incorrect",
+        "email_required": "Email is required",
+        "password_required": "Password is required",
+        "all_fields_required": "All fields are required",
+        "created_successfully": "Successfully created"
+    }
+}

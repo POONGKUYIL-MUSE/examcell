@@ -1,0 +1,71 @@
+Dashboard
+Manage Hall
+Student - CRUD
+Staff - CRUD
+Room - CRUD
+
+Student, yr, dept
+Room - block
+
+Student
+id
+regno
+name
+email
+phone
+dob
+year
+dept
+active
+
+Staff
+id
+name
+email
+phone
+dob
+dept
+active
+
+Rooms
+id
+dept
+block_no
+room_name
+capacity
+rows
+cols
+
+Blocks
+id
+dept
+block_no
+
+Department
+id
+dept_name
+
+Batches
+id
+dept
+year
+
+
+5x4
+_ _ _ _
+_ _ _ _ 
+_ _ _ _ 
+_ _ _ _ 
+_ _ _ _
+
+
+
+department              block               room
+id                      id                  id
+deptname                dept                dept
+deptslug                block               block
+                                            capacity
+
+
+
+SELECT tbl_room.*, if(tbl_halls.remaining is null, tbl_room.capacity, tbl_halls.remaining) as avail_capacity, tbl_department.deptname as deptname, tbl_block.block as blockname FROM tbl_room LEFT JOIN tbl_halls ON tbl_room.id = tbl_halls.room INNER JOIN tbl_department ON tbl_room.dept = tbl_department.id INNER JOIN tbl_block ON tbl_room.block=tbl_block.id;
