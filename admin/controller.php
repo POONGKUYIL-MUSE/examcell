@@ -518,8 +518,10 @@ if (isset($_POST['save_exam'])) {
     $exam_date = mysqli_real_escape_string($conn, $_POST['exam_date']);
     $exam_date = date("Y-m-d", strtotime($exam_date));
 
-    $query = "INSERT INTO tbl_exams (exam_name, exam_subject_name, exam_subject_code, exam_date, exam_start_time, exam_end_time, exam_dept, exam_batch) VALUES 
-    ('$exam_name', '$exam_subject_name', '$exam_subject_code', '$exam_date', '$exam_start_time', '$exam_end_time', '$exam_dept', '$exam_batch')";
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+
+    $query = "INSERT INTO tbl_exams (exam_name, exam_subject_name, exam_subject_code, exam_date, exam_start_time, exam_end_time, exam_dept, exam_batch, notify_date) VALUES 
+    ('$exam_name', '$exam_subject_name', '$exam_subject_code', '$exam_date', '$exam_start_time', '$exam_end_time', '$exam_dept', '$exam_batch', '$notify_date')";
 
     $query_run = mysqli_query($conn, $query);
     if ($query_run) {
@@ -548,7 +550,9 @@ if (isset($_POST['update_exam'])) {
     $exam_date = mysqli_real_escape_string($conn, $_POST['exam_date']);
     $exam_date = date("Y-m-d", strtotime($exam_date));
 
-    $query = "UPDATE tbl_exams SET exam_name='$exam_name', exam_subject_name='$exam_subject_name', exam_subject_code='$exam_subject_code', exam_date='$exam_date', exam_start_time='$exam_start_time', exam_end_time='$exam_end_time', exam_dept='$exam_dept', exam_batch='$exam_batch', status='$exam_status'";
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+
+    $query = "UPDATE tbl_exams SET exam_name='$exam_name', exam_subject_name='$exam_subject_name', exam_subject_code='$exam_subject_code', exam_date='$exam_date', exam_start_time='$exam_start_time', exam_end_time='$exam_end_time', exam_dept='$exam_dept', exam_batch='$exam_batch', status='$exam_status', notify_date='$notify_date'";
     $query .=  "WHERE id='$exam_id' ";
     $query_run = mysqli_query($conn, $query);
 
@@ -738,8 +742,6 @@ if (isset($_POST['save_halls'])) {
     $end_time = $_POST['end_time'];
 
     $exam_details = $_POST['exam_details'];
-    // print_r($exam_details);
-    // print_r("<br>");
 
     $exam_halls = $_POST['exam_halls'];
 
