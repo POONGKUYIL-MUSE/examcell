@@ -94,6 +94,8 @@ CREATE TABLE `tbl_exams` (
   `exam_subject_name` varchar(100) NOT NULL,
   `exam_subject_code` varchar(100) NOT NULL,
   `exam_date` date NOT NULL,
+  `notify_date` datetime NOT NULL,
+  `is_notified` datetime DEFAULT NULL,
   `exam_start_time` varchar(64) NOT NULL,
   `exam_end_time` varchar(64) DEFAULT NULL,
   `exam_dept` int(11) NOT NULL,
@@ -164,7 +166,7 @@ CREATE TABLE `tbl_staff` (
 --
 
 INSERT INTO `tbl_staff` (`id`, `email`, `firstname`, `lastname`, `phonenumber`, `password`, `profile_image`, `staff_department`, `admin`, `active`, `media_path_slug`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
-(1, 'admin@examcell.com', 'Admin', 'Examcell', '9876543210', '0e7517141fb53f21ee439b355b5a1d0a', NULL, 0, 1, 1, NULL, '2023-01-15 18:50:37', 1, '2023-01-15 18:50:37', 1),
+(1, 'ngpasc.examcell@gmail.com', 'Admin', 'Examcell', '9876543210', '0e7517141fb53f21ee439b355b5a1d0a', NULL, 0, 1, 1, NULL, '2023-01-15 18:50:37', 1, '2023-01-15 18:50:37', 1),
 (2, 'paavai@gmail.com', 'Senthamizh', 'Paavai', '8754219630', 'Paavai@123', NULL, 1, 0, 1, NULL, '2023-01-15 19:12:05', 1, '2023-01-15 19:12:05', 1),
 (3, 'gautam@gmail.com', 'Gautam', 'J', '7845962130', 'd41d8cd98f00b204e9800998ecf8427e', NULL, 1, 0, 1, NULL, '2023-01-15 19:12:41', 1, '2023-01-16 14:55:14', 1);
 
@@ -224,7 +226,9 @@ CREATE TABLE `tbl_halls`(
   `exam_details` longtext NOT NULL,
   `allocated` int(11) NOT NULL,
   `remaining` int(11) NOT NULL,
-  `staff` int(11) NOT NULL
+  `staff` int(11) NOT NULL,
+  `notify_date` datetime NOT NULL,
+  `is_notified` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
