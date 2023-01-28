@@ -732,6 +732,8 @@ if (isset($_POST['save_halls'])) {
     $hall_date = $_POST['exam_date'];
     $hall_date = date("Y-m-d", strtotime($hall_date));
 
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+
     $start_time = $_POST['start_time'];
     $end_time = $_POST['end_time'];
 
@@ -802,7 +804,7 @@ if (isset($_POST['save_halls'])) {
 
                 $total_capacity = $r;
 
-                array_push($hall_query, "INSERT INTO tbl_halls (date, start_time, end_time, room, exam_details, allocated, remaining) VALUES('" . $hall_date . "', '" . $start_time . "', '" . $end_time . "', " . $hall['id'] . ", '" . json_encode($exams) . "', " . $allocated . ", " . $remain . ");");
+                array_push($hall_query, "INSERT INTO tbl_halls (date, start_time, end_time, room, exam_details, allocated, remaining, notify_date) VALUES('" . $hall_date . "', '" . $start_time . "', '" . $end_time . "', " . $hall['id'] . ", '" . json_encode($exams) . "', " . $allocated . ", " . $remain . ", '" . $notify_date . "');");
                 
                 array_push($halls, $t);
             }
@@ -1051,7 +1053,6 @@ if (isset($_POST['student_sheet_pdf_maker'])) {
             }
         }
 
-
         //----- Code for generate pdf
         $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $pdf->SetCreator(PDF_CREATOR);
@@ -1212,7 +1213,7 @@ if (isset($_POST['seating_pdf_maker'])) {
     //----- Code for generate pdf
     $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator(PDF_CREATOR);
-    //$pdf->SetTitle("Export HTML Table data to PDF using TCPDF in PHP");  
+    $pdf->SetTitle("Seating Arrangement");  
     // $pdf->SetHeaderData(PDF_HEADER_LOGO, 150, PDF_HEADER_TITLE, PDF_HEADER_STRING);
     $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 006', PDF_HEADER_STRING);
     $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -1229,14 +1230,6 @@ if (isset($_POST['seating_pdf_maker'])) {
 
     $dimensions = $pdf->getPageDimensions();
 
-    $header = '
-        <div align="center">
-            <h3>ABC college</h3>
-            <span>Madurai 625-015, Tamilnadu, India</span><br>
-            <span>Email: examcell.admin@tce.edu Contact: 8745962103</span>
-        </div>
-    ';
-    $pdf->writeHTML($header);
     
     $info_right_column = '';
     $info_left_column  = '';
@@ -1254,6 +1247,9 @@ if (isset($_POST['seating_pdf_maker'])) {
 
     $image_file = '../assets/images/logo.jpg';
     $pdf->Image($image_file, 30, 10, 230, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
+    $pdf->ln(10);
+    $pdf->ln(10);
+    $pdf->ln(10);
     $pdf->ln(10);
     $pdf->ln(10);
     pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
