@@ -256,13 +256,13 @@ function send_email($toEmail, $subject, $content, $attachment = []) {
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPAuth = true;
-    $mail->Username = 'ngpasc.examcell@gmail.com';   // From address
-    $mail->Password = 'aysesarllmjhtzrm';   // App specific password
+    $mail->Username = 'your_admin_email';   // From address
+    $mail->Password = 'app_specific_password';   // App specific password
     $mail->SMTPSecure = 'ssl';
     $mail->Port = 465;
     
     // Set From Email Address
-    $mail->setFrom('ngpasc.examcell@gmail.com');
+    $mail->setFrom('your_admin_email');
     // Set To Email Address
     $mail->addAddress($toEmail);
     
