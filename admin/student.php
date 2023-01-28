@@ -95,7 +95,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>RegNo</th>
                                 <th>Student Name</th>
                                 <th>Contact</th>
                                 <th>Department/Batch</th>
@@ -116,8 +116,8 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                 foreach ($query_run as $student) {
                             ?>
                                     <tr>
-                                        <td><?= $student['id']; ?></td>
-                                        <td><?= $student['firstname'] . ' ' . $student['lastname'] . '<br><small>(' . $student['regno'] . ')</small>'; ?></td>
+                                        <td><?= $student['regno']; ?></td>
+                                        <td><?= $student['firstname'] . ' ' . $student['lastname']; ?></td>
                                         <td><?= $student['email'] . '<br>' . $student['phonenumber']; ?></td>
                                         <td><?= $student['deptname'] . '<br>' . $student['batchyear']; ?></td>
                                         <td><?= $student['active']; ?></td>
