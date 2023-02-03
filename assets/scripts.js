@@ -256,7 +256,7 @@ $(function () {
 
         if ($('input[name="exam_details[]"]:checked').length > 0) {
             console.log("coes");
-             
+
             var exam_capacity = 0;
             var checked_exams = $('input[name="exam_details[]"]:checked');
             var start_times = [];
@@ -278,8 +278,8 @@ $(function () {
             // start_times.push(new Date('2023-01-18 08:00'));
             // end_times.push(new Date('2023-01-18 11:00'))
 
-            var min = start_times.reduce(function (a, b) { return a < b ? a : b; }); 
-            var max = end_times.reduce(function (a, b) { return a > b ? a : b; }); 
+            var min = start_times.reduce(function (a, b) { return a < b ? a : b; });
+            var max = end_times.reduce(function (a, b) { return a > b ? a : b; });
 
             var min_time = padTo2Digits(min.getHours()) + ':' + padTo2Digits(min.getMinutes());
             var max_time = padTo2Digits(max.getHours()) + ':' + padTo2Digits(max.getMinutes());
@@ -354,7 +354,7 @@ $(function () {
         }
 
         needed = needed - exam_capacity;
-        
+
         $('.seats_allotted').text(exam_capacity);
 
         if (parseInt($('.seats_needed').text()) <= parseInt($('.seats_allotted').text())) {
@@ -427,11 +427,11 @@ $(function () {
 
         var examViewModal = new bootstrap.Modal(document.getElementById('show_exam_detail'), {
             keyboard: false
-          });
+        });
 
         examViewModal.toggle();
     });
-    
+
     $('.assign_invigilator').on('click', function () {
         $('#assign_invigilator .modal-content').empty();
         var hall_id = $(this).data('hall_id');
@@ -473,7 +473,7 @@ $(function () {
 					    <input type="submit" name="assign_invigilator" class="btn btn-primary btn-sm" id="submit">
 				    </div>
                     </form>`;
-                    
+
                     $('#assign_invigilator .modal-content').append(html);
                 } else {
                     console.log("wrong");
@@ -486,28 +486,75 @@ $(function () {
 
         var assignStaffModel = new bootstrap.Modal(document.getElementById('assign_invigilator'), {
             keyboard: false
-          });
+        });
         assignStaffModel.toggle();
     });
 
     $("#assignInvigilatorForm").submit(function(event){
         $("#assign_invigilator").modal('hide');
-		// submit_assign_staff_form();
-		return false;
-	});
+        // submit_assign_staff_form();
+        return false;
+    });
+
+    $("body").on('change', 'input[name=exam_report_date]', function () {
+        var exam_report_date = $(this).val();
+        $.ajax({
+            type: "POST",
+            url: "controller.php",
+            data: {
+                "get_dept_based_exams": true,
+                "exam_report_date": exam_report_date 
+            },
+            cache: false,
+            success: function (data) {
+                data = JSON.parse(data);
+                if (data.success) {
+
+                    $('button[name=exam_report_download]').attr('disabled', 'disabled');
+                    $('select[name=exam_report_dept] option:not(:first)').remove();
+
+                    var departments = data.departments;
+
+                    if (departments.length == 0) {
+                        $('select[name=exam_report_dept] option:not(:first)').remove();
+                    }
+
+                    var options = ``;
+
+                    for (i = 0; i < departments.length; i++) {
+                        options += `<option value='` + departments[i][0] + `'>` + departments[i][1] + `</option>`;
+                    }
+                    $('select[name=exam_report_dept]').append(options);
+                }
+            },
+            error: function () {
+                alert("Error");
+            }
+        });
+
+    });
+
+    $("body").on('change', 'select[name=exam_report_dept]', function () {
+        var exam_report_dept = $(this).val()
+        if (exam_report_dept!=0) {
+            $('button[name=exam_report_download]').removeAttr('disabled');
+        } else {
+            $('button[name=exam_report_download]').attr('disabled', 'disabled');
+        }
+    });
 });
 
 function submit_assign_staff_form(){
     var form_data = $('form#assignInvigilatorForm').serialize();
     $.ajax({
-       type: "POST",
-       url: "controller.php",
-       data: {
-        "assign_staff_invigilator": true,
-        "form_data": form_data
+        type: "POST",
+        url: "controller.php",
+        data: {
+            "assign_staff_invigilator": true,
+            "form_data": form_data
         },
-       cache:false,
-       success: function (data) {
+        cache:false,
+        success: function (data) {
             data = JSON.parse(data);
             if (data.success) {
                 console.log(data);
@@ -515,16 +562,16 @@ function submit_assign_staff_form(){
                 $("#assign_invigilator").modal('hide');
             }
         },
-       error: function(){
-           alert("Error");
-       }
-   });
+        error: function(){
+            alert("Error");
+        }
+    });
 }
 
 function unique(list) {
     var result = [];
     $.each(list, function(i, e) {
-      if ($.inArray(e, result) == -1) result.push(e);
+        if ($.inArray(e, result) == -1) result.push(e);
     });
     return result;
 }

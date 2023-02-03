@@ -68,6 +68,11 @@ function site_navbar() {
                     </a>
                 </li>
                 <li class='nav-item'>
+                    <a href='exam_report.php' class='nav-link align-middle px-0'>
+                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Exam Report</span>
+                    </a>
+                </li>
+                <li class='nav-item'>
                     <a href='staff.php' class='nav-link align-middle px-0'>
                         <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Staffs</span>
                     </a>

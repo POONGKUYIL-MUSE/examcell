@@ -1375,3 +1375,203 @@ function get_staff_name($staff_id) {
         return $row['firstname'] . ' ' . $row['lastname'];
     }
 }
+
+if (isset($_POST['get_dept_based_exams'])) {
+    if (isset($_POST['exam_report_date'])) {
+
+        $exam_report_date = $_POST['exam_report_date'];
+        $exam_report_date = date("Y-m-d", strtotime($exam_report_date));
+        $query = "SELECT DISTINCT(tbl_department.deptname), tbl_department.id FROM tbl_department INNER JOIN tbl_exams ON tbl_department.id = tbl_exams.exam_dept WHERE tbl_exams.exam_date='".$exam_report_date ."'";
+
+        $departments = [];
+
+        $query_run = mysqli_query($conn, $query);
+        if (mysqli_num_rows($query_run) > 0) {
+            foreach ($query_run as $department) {
+                $t = [$department['id'], $department['deptname']];
+                array_push($departments, $t);
+            }
+        }
+        echo json_encode([
+            "success" => true,
+            "departments" => $departments
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false
+        ]);
+    }
+}
+
+if (isset($_POST['exam_report_download'])) {
+    //----- Code for generate pdf
+    $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf->SetCreator(PDF_CREATOR);
+    $pdf->SetTitle("Seating Arrangement");  
+    // $pdf->SetHeaderData(PDF_HEADER_LOGO, 150, PDF_HEADER_TITLE, PDF_HEADER_STRING);
+    $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 006', PDF_HEADER_STRING);
+    $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+    $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+    $pdf->SetDefaultMonospacedFont('helvetica');
+    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+    $pdf->SetMargins(PDF_MARGIN_LEFT, '5', PDF_MARGIN_RIGHT);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->SetAutoPageBreak(TRUE, 10);
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->AddPage(); //default A4
+    //$pdf->AddPage('P','A5'); //when you require custome page size
+
+    $hall_details = [];
+
+    $image_file = '../assets/images/logo.jpg';
+    $pdf->Image($image_file, 10, 10, 190, '', 'JPG', '', 'T', false, 300, '', false, false, 0, false, false, false);
+
+    $pdf->ln(10);
+
+    $pdf->writeHTML('<br><br><br><br><br>');
+
+    if (isset($_POST['exam_report_date']) && isset($_POST['exam_report_dept'])) {
+
+        $pdf->ln(10);
+
+        $pdf->writeHTML('<h2 align="center">Department of ' . get_exam_dept($_POST['exam_report_dept']) . '</h2>');
+        $pdf->writeHTML('<h2 align="center">Exam Hall Allotment</h2>');
+
+        $pdf->ln(10);
+        $pdf->writeHTML('<h4 align="center">Date : '.$_POST['exam_report_date'].'</h4>');
+
+        $pdf->ln(10);
+        $exam_date = date("Y-m-d", strtotime($_POST['exam_report_date']));
+        $exam_dept = $_POST['exam_report_dept'];
+
+        $exam_ids = [];
+        $exam_batches = [];
+        $exam_names = [];
+
+        $query = 'SELECT tbl_exams.* FROM tbl_department INNER JOIN tbl_exams ON tbl_exams.exam_dept = tbl_department.id WHERE tbl_department.id="'.$exam_dept.'" AND tbl_exams.exam_date="'.$exam_date.'";';
+        $query_run = mysqli_query($conn, $query);
+        if (mysqli_num_rows($query_run) > 0) { 
+
+            foreach ($query_run as $exams) {
+                array_push($exam_ids, $exams['id']);
+                array_push($exam_batches, $exams['exam_batch']);
+                $t = [];
+                $t['subject_name'] = $exams['exam_subject_name'];
+                $t['subject_code'] = $exams['exam_subject_code'];
+                $t['exam_name'] = $exams['exam_name'];
+                $t['exam_start_time'] = $exams['exam_start_time'];
+                $t['exam_end_time'] = $exams['exam_end_time'];
+
+                array_push($exam_names, $t);
+            }
+
+            $hall_ids = [];
+            $query = "SELECT * FROM tbl_halls WHERE tbl_halls.date = '".$exam_date."';";
+            $query_run = mysqli_query($conn, $query);
+            if (mysqli_num_rows($query_run) > 0) {
+                foreach ($query_run as $halls) {
+                    $exam_details = json_decode($halls['exam_details']);
+                    foreach ($exam_details as $exam_detail) {
+                        if ($exam_detail->exam_dept == $exam_dept ) {
+                            $hall_details[$halls['id']] = [];
+                            $students = [];
+                            $query = "SELECT tbl_hall_student.*, tbl_student.regno, tbl_student.student_batch FROM tbl_hall_student INNER JOIN tbl_student ON tbl_student.id=tbl_hall_student.s_id WHERE hall_id = '".$halls['id']."' AND tbl_student.student_department='".$exam_dept."' ORDER BY tbl_student.student_batch, tbl_hall_student.id ASC;";
+                            $query_run = mysqli_query($conn, $query);
+                            if (mysqli_num_rows($query_run) > 0) {
+                                foreach ($query_run as $stud) {
+                                    if ($students[$stud['student_batch']] == []) {
+                                        $students[$stud['student_batch']] = [];
+                                        array_push($students[$stud['student_batch']], $stud['regno']);
+                                    }
+                                    else {
+                                        if (!in_array($stud['regno'], $students[$stud['student_batch']], true)) {
+                                            array_push($students[$stud['student_batch']], $stud['regno']);
+                                        }
+                                    }
+                                }
+                                $hall_details[$halls['id']]['students'] = $students;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (count($hall_details) > 0) {
+        $dimensions = $pdf->getPageDimensions();
+        $i=1;
+        $content = '<table border="0" cellspacing="0" cellpadding="10">';
+        foreach ($hall_details as $id => $detail) {
+            if ($i%2 == 1) {
+                $content .= '<tr>';
+            }
+            $content .= '<td align="center">';
+            $content .= '<b>Room ID : ' . get_room_name($id) . '</b><br><br>';
+            foreach ($detail['students'] as $batch => $student) {
+
+                $content .= ''. get_exam_batch($batch) . ' (';
+                $content .= $student[0] . ' - ' . $student[count($student) - 1];
+                $content .= ')<br><br>';
+            }
+            $content .= '</td>';
+
+            if ($i%2 != 1) {
+                $content .= '</tr>';
+            }
+            $i++;
+        }
+        $content .= '</table>';
+
+        $pdf->writeHTML($content);
+    }
+
+    $file_location = "C://xampp/htdocs/examcell/uploads/"; //for local xampp server
+
+    $datetime = date('dmY_hms');
+    $file_name = "HSA_" . $datetime . ".pdf";
+    ob_end_clean();
+
+    $action = 'view';
+
+    if ($action == 'view') {
+        $pdf->Output($file_name, 'I'); // I means Inline view
+    } else if ($action == 'download') {
+        $pdf->Output($file_name, 'D'); // D means download
+    } else if ($action == 'upload') {
+        $pdf->Output($file_location . $file_name, 'F'); // F means upload PDF file on some folder
+        echo "Upload successfully!!";
+    }
+}
+
+
+function get_room_name($hall_id) {
+    require '../database/config.php';
+    $query = "SELECT tbl_room.room FROM tbl_room INNER JOIN tbl_halls ON tbl_halls.room=tbl_room.id WHERE tbl_halls.id='".$hall_id."'";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_array($query_run);
+        return $row['room'];
+    }
+}
+
+function get_exam_batch($batch) {
+    require '../database/config.php';
+    $query = "SELECT tbl_batch.batchyear FROM tbl_batch WHERE tbl_batch.id='".$batch."'";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_array($query_run);
+        return $row['batchyear'];
+    }
+}
+
+function get_exam_dept($dept) {
+    require '../database/config.php';
+    $query = "SELECT tbl_department.deptname FROM tbl_department WHERE tbl_department.id='".$dept."'";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_array($query_run);
+        return $row['deptname'];
+    }
+}
