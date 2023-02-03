@@ -61,8 +61,8 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                         </td>
                                         <td>
                                             <?php
-                                                $statuses = ['Not Seated', 'Seated', 'Completed'];
-                                                $classess = ['bg-secondary', 'bg-primary', 'bg-success'];
+                                                $statuses = ['Not Seated', 'Seated', 'Ongoing', 'Completed'];
+                                                $classess = ['bg-secondary', 'bg-primary', 'bg-info', 'bg-success'];
 
                                                 echo '<span class="text-white badge '.$classess[$exam['status']].'">' . $statuses[$exam['status']] . '</span>';
                                             ?>
