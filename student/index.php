@@ -11,7 +11,7 @@
 <body>
 
     <div class="container d-flex justify-content-center align-items-center" style="min-height:100vh;">
-        <form action="authenticate.php" method="POST" class="border shadow p-3 rounded" style="width:450px;">
+        <form id="student_login_form" action="authenticate.php" method="POST" class="border shadow p-3 rounded" style="width:450px;">
             <div class="text-center">
                 <img src="../assets/images/avatar.png" alt="">
             </div>
@@ -29,14 +29,29 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
+            <hr>
             <div class="text-center">
                 <button type="submit" class="btn btn-primary">Login</button>
-                <a href="register.php" class="btn btn-primary">Register</a>
+            </div>
+            <hr>
+            <div class="text-center">
+                <a href="register.php">(Register Here)</a> | 
+                <a href="forgot_pass.php">(Forgot Password)</a>
             </div>
         </form>
     </div>
 
     <script src="../assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(function() {
+            $("#student_login_form").validate({
+                rules: {
+                    email: {required:true, email:true},
+                    password: {required:true}
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

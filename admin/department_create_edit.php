@@ -34,7 +34,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                             }
                         }
                         ?>  
-                    <form action="controller.php" method="POST" class="p-3">
+                    <form action="controller.php" method="POST" class="p-3" id="department_master_form">
                         <?php if (isset($_GET['id'])) { ?>
                             <input type="text" class="form-control visually-hidden" id="id" name="id" value="<?php echo isset($department['id'])?$department['id']:''; ?>">
                         <?php }?>

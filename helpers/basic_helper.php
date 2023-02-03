@@ -15,6 +15,7 @@ function site_header() {
         <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
 
         <link rel='stylesheet' href='../assets/styles.css'>
+        <link rel='stylesheet' href='../assets/jquery_validation/demo/site-demos.css'>
     </head>
     <body>
     <div class='container d-flex'>

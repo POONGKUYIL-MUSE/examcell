@@ -34,13 +34,13 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                             }
                         }
                         ?>  
-                    <form action="controller.php" method="POST" class="p-3">
+                    <form action="controller.php" method="POST" class="p-3" id="block_master_form">
                         <?php if (isset($_GET['id'])) { ?>
                             <input type="text" class="form-control visually-hidden" id="id" name="id" value="<?php echo isset($block['id'])?$block['id']:''; ?>">
                         <?php }?>
                         <div class="mb-3">
                             <label for="dept" class="form-label">Department</label>
-                            <select class="form-select" name="dept" id="dept" aria-label="Default select example" autofocus>
+                            <select class="form-select" name="dept" id="dept" aria-label="Default select example" autofocus required>
                                 <option selected>Select Department</option>
                                 <?php 
                                     $query = "SELECT * FROM tbl_department";

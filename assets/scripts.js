@@ -12,6 +12,80 @@ $(function () {
     var site_url = 'http://localhost/examcell/';
     console.log("opening");
 
+    $("#student_form").validate({
+        rules: {
+            regno: {required:true},
+            email: {required:true, email:true},
+            firstname: {required: true},
+            lastname: {required: true},
+            student_department: {required: true},
+            student_batch: {required: true},
+            phonenumber: {required: true, minlength:10, maxlength:10, digits:true}
+        }
+    });
+    
+    $("#staff_form").validate({
+        rules: {
+            email: {required:true, email:true},
+            firstname: {required: true},
+            lastname: {required: true},
+            staff_department: {required: true},
+            phonenumber: {required: true, minlength:10, maxlength:10, digits:true}
+        }
+    });
+    
+    $("#batch_master_form").validate({
+        rules: {
+            dept: {required: true},
+            batchyear: {required: true}
+        }
+    });
+    
+    $("#block_master_form").validate({
+        rules: {
+            dept: {required: true},
+            block: {required: true}
+        }
+    });
+    
+    $("#room_master_form").validate({
+        rules: {
+            room: {required: true},
+            dept: {required: true},
+            block: {required: true},
+            capacity: {required: true, digits: true},
+            row_dim: {required: true, digits: true},
+            col_dim: {required: true, digits: true},
+
+        }
+    });
+    
+    $("#department_master_form").validate({
+        rules: {
+            deptname: {required: true},
+            deptslug: {required: true}
+        }
+    });
+    
+    $("#department_master_form").validate({
+        rules: {
+            deptname: {required: true},
+            deptslug: {required: true}
+        }
+    });
+
+    $("#exam_form").validate({
+        rules: {
+            exam_name: {required: true},
+            exam_subject_name: {required: true},
+            exam_subject_code: {required: true},
+            exam_date: {required: true},
+            exam_start_time: {required: true},
+            exam_end_time: {required: true},
+            exam_end_time: {required: true},
+        }
+    });
+
     $("body").on('click', '.filter-table', function() {
         var dept = $('select[name=student_department]').val();
         var batch = $('select[name=student_batch]').val();

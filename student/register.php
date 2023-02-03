@@ -10,12 +10,13 @@ require_once('../database/config.php');
     <title>Examcell</title>
     <link href="../assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel='stylesheet' href='../assets/jquery_validation/demo/site-demos.css'>
 </head>
 
 <body>
 
     <div class="container d-flex justify-content-center align-items-center" style="min-height:100vh;">
-        <form action="authenticate.php" method="POST" class="border shadow p-3 rounded" style="width:750px;">
+        <form id="student_register_form" action="authenticate.php" method="POST" class="border shadow p-3 rounded" style="width:750px;">
             <div class="text-center">
                 <img src="../assets/images/avatar.png" alt="">
             </div>
@@ -57,7 +58,7 @@ require_once('../database/config.php');
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="student_department" class="form-label">Department</label>
-                        <select class="form-select" name="student_department" id="student_department" aria-label="Default select example">
+                        <select class="form-select" name="student_department" id="student_department" aria-label="Default select example" requried>
                             <option selected>Select Department</option>
                             <?php
                             $query = "SELECT * FROM tbl_department";
@@ -75,7 +76,7 @@ require_once('../database/config.php');
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="student_batch" class="form-label">Batch</label>
-                        <select class="form-select" name="student_batch" id="student_batch" aria-label="Default select example" autofocus>
+                        <select class="form-select" name="student_batch" id="student_batch" aria-label="Default select example" required>
                             <option selected>Select Batch</option>
                             <?php
                             if (isset($_GET['id'])) {
@@ -108,8 +109,13 @@ require_once('../database/config.php');
                     </div>
                 </div>
             </div>
+            <hr>
             <div class="text-center">
                 <button type="submit" name="student_register" class="btn btn-primary">Register</button>
+            </div>
+            <hr>
+            <div class="text-center">
+                <a href="index.php">(Login Here)</a>
             </div>
         </form>
     </div>
@@ -122,6 +128,17 @@ require_once('../database/config.php');
     <!-- <script src='../assets/scripts.js'></script> -->
     <script>
         $(function() {
+            $("#student_register_form").validate({
+                rules: {
+                    regno: {required:true},
+                    email: {required:true, email:true},
+                    firstname: {required: true},
+                    lastname: {required: true},
+                    student_department: {required: true},
+                    student_batch: {required: true},
+                    phonenumber: {required: true, minlength:10, maxlength:10, digits:true}
+                }
+            });
             $("body").on('change', 'select[name=student_department]', function () {
             var deptid = $('select[name=student_department]').val();
             console.log(deptid);

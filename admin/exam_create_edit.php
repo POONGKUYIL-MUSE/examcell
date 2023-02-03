@@ -31,7 +31,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         }
                     }
                     ?>
-                    <form action="controller.php" method="POST" class="p-3">
+                    <form action="controller.php" method="POST" class="p-3" id="exam_form">
                         <?php if (isset($_GET['id'])) { ?>
                             <input type="text" class="form-control visually-hidden" id="id" name="id" value="<?php echo isset($exam['id']) ? $exam['id'] : ''; ?>">
                         <?php } ?>
@@ -45,7 +45,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="exam_dept" class="form-label">Department</label>
-                                    <select class="form-select" name="exam_dept" id="exam_dept" aria-label="Default select example">
+                                    <select class="form-select" name="exam_dept" id="exam_dept" aria-label="Default select example" required>
                                         <option selected>Select Department</option>
                                         <?php
                                         $query = "SELECT * FROM tbl_department";
@@ -103,7 +103,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         </div>
                         <div class="mb-3">
                             <label for="exam_batch" class="form-label">Batch</label>
-                            <select class="form-select" name="exam_batch" id="exam_batch" aria-label="Default select example">
+                            <select class="form-select" name="exam_batch" id="exam_batch" aria-label="Default select example" required>
                                 <option selected>Select Batch</option>
                                 <?php
                                     if (isset($_GET['id'])) {
@@ -129,7 +129,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                             ?>
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
-                                <select class="form-select" name="status" id="status" aria-label="Default select example">
+                                <select class="form-select" name="status" id="status" aria-label="Default select example" required>
                                     <?php foreach ($statuses as $status) {
                                         $selected = '';
                                         if (array_search($status, $statuses) == $exam['status']) {
