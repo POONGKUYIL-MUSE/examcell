@@ -60,7 +60,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                         <td>
                                             <a href="#" class="btn btn-info btn-sm show_exam_detail" data-hall_id="<?= $hall['id']; ?>">View</a>
                                             <form action="controller.php" method="POST" class="d-inline">
-                                                <button type="submit" name="seating_pdf_maker" value="<?= $hall['id']; ?>" class="btn btn-info btn-sm">PDF</button>
+                                                <button type="submit" name="hall_pdf_maker" value="<?= $hall['id']; ?>" class="btn btn-info btn-sm">PDF</button>
                                             </form>
                                             <form action="controller.php" method="POST" class="d-inline">
                                                 <button type="submit" name="delete_exam" value="<?= $hall['id']; ?>" class="btn btn-danger btn-sm">Delete</button>

@@ -1321,6 +1321,163 @@ if (isset($_POST['seating_pdf_maker'])) {
 
 }
 
+if (isset($_POST['hall_pdf_maker'])) {
+    
+    $hall_id = $_POST['hall_pdf_maker'];
+
+    $hall_details = [];
+    $exam_details = [];
+    $query = "SELECT tbl_halls.id as hall_id, tbl_halls.*, tbl_room.id as room_id, tbl_room.*, tbl_department.deptname, tbl_block.block FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_department ON tbl_department.id=tbl_room.dept INNER JOIN tbl_block ON tbl_block.id=tbl_room.block WHERE tbl_halls.id='".$hall_id."'";
+
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $hall) {
+            $hall_details['hall_id']        = $hall['hall_id'];
+            $hall_details['date']           = $hall['date'];
+            $hall_details['start_time']     = $hall['start_time'];
+            $hall_details['end_time']       = $hall['end_time'];
+            $hall_details['staff']          = $hall['staff'];
+            $hall_details['allocated']      = $hall['allocated'];
+            $hall_details['room_id']        = $hall['room_id'];
+            $hall_details['deptname']       = $hall['deptname'];
+            $hall_details['block']          = $hall['block'];
+            $hall_details['row_dim']        = $hall['row_dim'];
+            $hall_details['col_dim']        = $hall['col_dim'];
+            $hall_details['capacity']       = $hall['capacity'];
+            $hall_details['room']           = $hall['room'];
+            $hall_details['exam_details']   = json_decode($hall['exam_details']);
+        }
+    }
+
+    // Get Exam Details on a Room
+    $hall_details['exam_details'][0]->exam_id;
+    $exam_ids = [];
+
+    foreach ($hall_details['exam_details'] as $exam) {
+        $query = "SELECT * FROM tbl_exams WHERE id='" . $exam->exam_id . "'";
+        $query_run = mysqli_query($conn, $query);
+        if (mysqli_num_rows($query_run) > 0 ){
+            foreach ($query_run as $exam_det) {
+                $t['exam_id'] = $exam_det['id'];
+                $t['exam_name'] = $exam_det['exam_name'];
+                $t['exam_subject_name'] = $exam_det['exam_subject_name'];
+                $t['exam_subject_code'] = $exam_det['exam_subject_code'];
+                $t['exam_dept'] = $exam_det['exam_dept'];
+                $t['exam_batch'] = $exam_det['exam_batch'];
+
+                array_push($exam_details, $t);
+                array_push($exam_ids, $exam_det['id']);
+            }
+        }
+    }
+
+    $students = [];
+    $query = "SELECT tbl_hall_student.*, tbl_student.regno, tbl_student.firstname, tbl_student.lastname FROM tbl_hall_student INNER JOIN tbl_student ON tbl_student.id=tbl_hall_student.s_id WHERE hall_id = '".$hall_id."' ORDER BY tbl_hall_student.exam_id, tbl_hall_student.id ASC;";
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $stud) {
+            $t = [$stud['exam_id'], $stud['regno'], $stud['firstname'] . ' ' . $stud['lastname']];
+            // array_push($students, $stud['regno']);
+            array_push($students, $t);
+        }
+    }
+
+    //----- Code for generate pdf
+    $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf->SetCreator(PDF_CREATOR);
+    $pdf->SetTitle("Seating Arrangement");  
+    // $pdf->SetHeaderData(PDF_HEADER_LOGO, 150, PDF_HEADER_TITLE, PDF_HEADER_STRING);
+    $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 006', PDF_HEADER_STRING);
+    $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+    $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+    $pdf->SetDefaultMonospacedFont('helvetica');
+    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+    $pdf->SetMargins(PDF_MARGIN_LEFT, '5', PDF_MARGIN_RIGHT);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->SetAutoPageBreak(TRUE, 10);
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->AddPage(); //default A4
+    //$pdf->AddPage('P','A5'); //when you require custome page size 
+
+    $dimensions = $pdf->getPageDimensions();
+
+    
+    $info_right_column = '';
+    $info_left_column  = '';
+
+    // $info_left_column .= '<b>Exams</b><br>';
+
+    // foreach($exam_details as $exam) {
+    //     $info_left_column .= $exam['exam_name'] . ' - ' . $exam['exam_subject_name'] . ' (' . $exam['exam_subject_code'] . ')<br>';
+    // }
+
+
+    $info_right_column .= '<span style="font-weight:bold;font-size:14px;">' . 'ROOM : ' . $hall_details['room'] . '</span><br />';
+    $info_right_column .= '<b style="color:#4e4e4e;">DATE : ' . $hall_details['date'] . '</b><br>';
+    $info_right_column .= '<b style="color:#4e4e4e;">TIME : ' . $hall_details['start_time'] . ' to ' . $hall_details['end_time'] . '</b>';
+
+    $image_file = '../assets/images/logo.jpg';
+    $pdf->Image($image_file, 10, 10, 190, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
+    $pdf->ln(10);
+    $pdf->ln(10);
+    $pdf->ln(10);
+    $pdf->ln(10);
+    // $pdf->ln(10);
+    pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
+
+    $pdf->ln(10);
+
+    $content = '<table border="1" cellspacing="0" cellpadding="6">';
+    $content .= '<tr align="center"><th><b>Seat No.</b></th><th><b>Regno</b></th><th><b>Student Name</b></th></tr>';
+
+    $k = 1;
+    for ($i=0; $i<count($exam_details); $i++) {
+        $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
+        for ($j=0; $j<count($students); $j++) {
+            if ($exam_ids[$i] == $students[$j][0]) {
+                $content .= '<tr align="center"><td>'.$k.'</td><td>'.$students[$j][1].'</td><td>'.$students[$j][2].'</td></tr>';
+                $k += 1;
+            }
+        }
+    }
+
+    $content .= '</table>';
+
+    $pdf->writeHTML($content);
+    
+    $pdf->writeHTML('<br><br>');
+
+    $pdf->writeHTML('<h4 align="left">HOD Signature</h4>');
+
+    $pdf->writeHTML('<h4 align="right">Invigilator Signature</h4>');
+    if ($hall_details['staff'] != 0 ) {
+        $pdf->writeHTML('<h4 align="right">'.get_staff_name($hall_details['staff']).'</h4>');
+    }
+
+    // $file_location = "/home/fbi1glfa0j7p/public_html/examples/generate_pdf/uploads/"; //add your full path of your server
+    $file_location = "C://xampp/htdocs/examcell/uploads/"; //for local xampp server
+
+    $datetime = date('dmY_hms');
+    $file_name = "HSA_" . $datetime . ".pdf";
+    ob_end_clean();
+
+    // $action = $_GET['ACTION'];
+    $action = 'view';
+
+    if ($action == 'view') {
+        $pdf->Output($file_name, 'I'); // I means Inline view
+    } else if ($action == 'download') {
+        $pdf->Output($file_name, 'D'); // D means download
+    } else if ($action == 'upload') {
+        $pdf->Output($file_location . $file_name, 'F'); // F means upload PDF file on some folder
+        echo "Upload successfully!!";
+    }
+
+    //----- End Code for generate pdf
+
+}
+
 
 /**
  * Helper function for PDF multi row
