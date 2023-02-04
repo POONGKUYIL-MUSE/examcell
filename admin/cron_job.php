@@ -116,6 +116,7 @@ if (mysqli_num_rows($query_run) > 0) {
             $query_run = mysqli_query($conn, $query);
             if (mysqli_num_rows($query_run) > 0 ){
                 foreach ($query_run as $exam_det) {
+                    $t['exam_id'] = $exam_det['id'];
                     $t['exam_name'] = $exam_det['exam_name'];
                     $t['exam_subject_name'] = $exam_det['exam_subject_name'];
                     $t['exam_subject_code'] = $exam_det['exam_subject_code'];
@@ -128,16 +129,17 @@ if (mysqli_num_rows($query_run) > 0) {
         }
 
         $students = [];
-        $query = "SELECT tbl_hall_student.*, tbl_student.regno FROM tbl_hall_student INNER JOIN tbl_student ON tbl_student.id=tbl_hall_student.s_id WHERE hall_id = '".$hall_details['hall_id']."' ORDER BY tbl_hall_student.id ASC;";
+        $query = "SELECT tbl_hall_student.*, tbl_student.regno, tbl_student.firstname, tbl_student.lastname FROM tbl_hall_student INNER JOIN tbl_student ON tbl_student.id=tbl_hall_student.s_id WHERE hall_id = '".$hall_details['hall_id']."' ORDER BY tbl_hall_student.exam_id, tbl_hall_student.id ASC;";
         $query_run = mysqli_query($conn, $query);
         if (mysqli_num_rows($query_run) > 0) {
             foreach ($query_run as $stud) {
-                array_push($students, $stud['regno']);
+                $t = [$stud['exam_id'], $stud['regno'], $stud['firstname'] . ' ' . $stud['lastname']];
+                array_push($students, $t);
             }
         }
 
         // Code to generate PDF
-        $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $pdf->SetCreator(PDF_CREATOR);
         // $pdf->SetTitle("Seating Arrangement");  
         // $pdf->SetHeaderData(PDF_HEADER_LOGO, 150, PDF_HEADER_TITLE, PDF_HEADER_STRING);
@@ -150,7 +152,7 @@ if (mysqli_num_rows($query_run) > 0) {
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetAutoPageBreak(TRUE, 10);
-        $pdf->SetFont('helvetica', '', 12);
+        $pdf->SetFont('helvetica', '', 10);
         $pdf->AddPage(); //default A4
         //$pdf->AddPage('P','A5'); //when you require custome page size 
 
@@ -159,59 +161,44 @@ if (mysqli_num_rows($query_run) > 0) {
         $info_right_column = '';
         $info_left_column  = '';
 
-        $info_left_column .= '<b>Exams</b><br>';
+        // $info_left_column .= '<b>Exams</b><br>';
 
-        foreach($exam_details as $exam) {
-            $info_left_column .= $exam['exam_name'] . ' - ' . $exam['exam_subject_name'] . ' (' . $exam['exam_subject_code'] . ')<br>';
-        }
+        // foreach($exam_details as $exam) {
+        //     $info_left_column .= $exam['exam_name'] . ' - ' . $exam['exam_subject_name'] . ' (' . $exam['exam_subject_code'] . ')<br>';
+        // }
 
         $info_right_column .= '<span style="font-weight:bold;font-size:14px;">' . 'ROOM : ' . $hall_details['room'] . '</span><br />';
         $info_right_column .= '<b style="color:#4e4e4e;">DATE : ' . $hall_details['date'] . '</b><br>';
         $info_right_column .= '<b style="color:#4e4e4e;">TIME : ' . $hall_details['start_time'] . ' to ' . $hall_details['end_time'] . '</b>';
 
         $image_file = '../assets/images/logo.jpg';
-        $pdf->Image($image_file, 30, 10, 230, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
+        $pdf->Image($image_file, 10, 10, 190, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
         $pdf->ln(10);
         $pdf->ln(10);
         $pdf->ln(10);
         $pdf->ln(10);
-        $pdf->ln(10);
+        // $pdf->ln(10);
         pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
 
         $pdf->ln(10);
 
-        $pdf->writeHTML('<br><b> | (blackboard) >>></b><br>', true);
-
-        $tab = '<table border="1" cellspacing="0" cellpadding="10" align="center">';
-        $allot = 0;
-
-        $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-        for ($j=0; $j<=($hall_details['col_dim']); $j++) {
-            $tab .= '<tr>';
-                for ($i=0; $i<=$hall_details['row_dim']; $i++) {
-                if ($i == 0) {
-                    if ($i == 0 && $j == 0) {
-                        $tab .= '<th width="15%"><b>#</b></th>';
-                    } else {
-                        $tab .= '<th width="15%"><b>Col.'. $columns[$j-1] .'</b></th>';
-                    }
-
-                } else {
-                    if ($j == 0) {
-                        $tab .= '<td width="15%">Row.'.$i .'</td>';
-                    } else {
-                        if ($allot < $hall_details['capacity']) {
-                            $tab .= '<td width="15%">'.$students[$allot].'</td>';
-                            $allot += 1;
-                        }
-                    }
+        $content = '<table border="1" cellspacing="0" cellpadding="6">';
+        $content .= '<tr align="center"><th><b>Seat No.</b></th><th><b>Regno</b></th><th><b>Student Name</b></th></tr>';
+    
+        $k = 1;
+        for ($i=0; $i<count($exam_details); $i++) {
+            $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
+            for ($j=0; $j<count($students); $j++) {
+                if ($exam_details[$i]['exam_id'] == $students[$j][0]) {
+                    $content .= '<tr align="center"><td>'.$k.'</td><td>'.$students[$j][1].'</td><td>'.$students[$j][2].'</td></tr>';
+                    $k += 1;
                 }
             }
-            $tab .= '</tr>';
         }
-        $tab .= '</table>';
-
-        $pdf->writeHTMLCell(0, 0, '30', '', $tab, 0, 1, false, true, 'C', true);
+    
+        $content .= '</table>';
+    
+        $pdf->writeHTML($content);
         
         $pdf->writeHTML('<br><br>');
 
