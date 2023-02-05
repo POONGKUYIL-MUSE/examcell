@@ -28,7 +28,7 @@ function site_header() {
     }
 
     return $header;
-    
+
 }
 
 function site_footer() {
@@ -45,7 +45,76 @@ function site_footer() {
     </html>";
 }
 
-function site_navbar() {
+function get_menu_item()
+{
+    $content = "";
+
+    if ($_SESSION['admin']) {
+        $content .= "
+            <li class='nav-item'>
+                <a href='dashboard.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Dashboard</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='exams.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Manage Exam</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='halls.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Manage Halls</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='exam_report.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Exam Report</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='staff.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Staffs</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='student.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Students</span>
+                </a>
+            </li>
+            <li class='nav-item'>
+                <a href='room.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Rooms</span>
+                </a>
+            </li>
+            <li>
+                <a href='#submenu1' data-bs-toggle='collapse' class='nav-link px-0 align-middle'>
+                    <i class='fs-4 bi-speedometer2'></i> <span class='ms-1 d-none d-sm-inline'>Manage Category</span> </a>
+                <ul class='collapse hide nav flex-column ms-1' id='submenu1' data-bs-parent='#menu'>
+                    <li class='w-100'>
+                        <a href='department.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Departments</span></a>
+                    </li>
+                    <li>
+                        <a href='batch.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Batches</span></a>
+                    </li>
+                    <li>
+                        <a href='block.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Blocks</span></a>
+                    </li>
+                </ul>
+            </li>";
+    } else {
+        $content .= "
+            <li class='nav-item'>
+                <a href='dashboard.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Dashboard</span>
+                </a>
+            </li>";
+    }
+
+    return $content;
+}
+
+function site_navbar()
+{
     return "
     <div class='col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark' style='position:fixed'>
         <div class='d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100'>
@@ -53,57 +122,7 @@ function site_navbar() {
                 <span class='fs-5 d-none d-sm-inline'>EXAMCELL</span>
             </a>
             <ul class='nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start' id='menu'>
-                <li class='nav-item'>
-                    <a href='dashboard.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Dashboard</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='exams.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Manage Exam</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='halls.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Manage Halls</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='exam_report.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Exam Report</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='staff.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Staffs</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='student.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Students</span>
-                    </a>
-                </li>
-                <li class='nav-item'>
-                    <a href='room.php' class='nav-link align-middle px-0'>
-                        <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Rooms</span>
-                    </a>
-                </li>
-                <li>
-                    <a href='#submenu1' data-bs-toggle='collapse' class='nav-link px-0 align-middle'>
-                        <i class='fs-4 bi-speedometer2'></i> <span class='ms-1 d-none d-sm-inline'>Manage Category</span> </a>
-                    <ul class='collapse hide nav flex-column ms-1' id='submenu1' data-bs-parent='#menu'>
-                        <li class='w-100'>
-                            <a href='department.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Departments</span></a>
-                        </li>
-                        <li>
-                            <a href='batch.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Batches</span></a>
-                        </li>
-                        <li>
-                            <a href='block.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Blocks</span></a>
-                        </li>
-                    </ul>
-                </li>
-                
+            ".get_menu_item()."                
             </ul>
             <hr>
             <div class='dropdown pb-4'>
