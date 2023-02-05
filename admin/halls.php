@@ -24,9 +24,8 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Room</th>
+                                <th>Room | Allocated</th>
                                 <th>DateTime</th>
-                                <th>Allocated</th>
                                 <th>Invigilator</th>
                                 <th>Action</th>
                             </tr>
@@ -40,11 +39,10 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                 foreach ($query_run as $hall) {
                             ?>
                                     <tr>
-                                        <td><?= $hall['id']; ?></td>
-                                        <td><?= $hall['roomname']; ?></td>
-                                        <td><?= $hall['date'] . ' (' . $hall['start_time'] . ' to ' . $hall['end_time'] . ')'; ?></td>
-                                        <td><?= $hall['allocated']; ?></td>
-                                        <td><?php
+                                        <td><small><?= $hall['id']; ?></small></td>
+                                        <td><small><?= $hall['roomname']; ?> | Allocated - <?= $hall['allocated']; ?></small></td>
+                                        <td><small><?= $hall['date'] . ' (' . $hall['start_time'] . ' to ' . $hall['end_time'] . ')'; ?></small></td>
+                                        <td><small><?php
                                             if ($hall['staff'] != NULL && $hall['staff'] != 0) {
                                                 $query = "SELECT tbl_staff.firstname, tbl_staff.lastname, tbl_department.deptname FROM tbl_staff INNER JOIN tbl_department ON tbl_department.id=tbl_staff.staff_department WHERE tbl_staff.id=".$hall['staff'];
                                                 $query_run = mysqli_query($conn, $query);
@@ -52,11 +50,16 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                                     $row = mysqli_fetch_assoc($query_run);
                                                     echo $row['firstname'] . ' ' . $row['lastname'] . '<br><small>(' . $row['deptname'] . ')</small><br>';
                                                     echo "<a href='#' class='assign_invigilator' data-hall_id='".$hall['id']."'>Change staff</a>";
+                                                    if ($hall['is_notified'] != null) {
+                                                        echo " | <i data-bs-toggle='tooltip' title='".$hall['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
+                                                    }
                                                 }
                                             } else {
                                                 echo "<a href='#' class='btn btn-primary btn-sm assign_invigilator' data-hall_id='" . $hall['id'] . "'>Assign Staff</a>";
                                             }
-                                            ?></td>
+                                            ?>
+                                            </small>
+                                        </td>
                                         <td>
                                             <a href="#" class="btn btn-info btn-sm show_exam_detail" data-hall_id="<?= $hall['id']; ?>">View</a>
                                             <form action="controller.php" method="POST" class="d-inline">

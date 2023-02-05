@@ -24,9 +24,8 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Exam Type</th>
+                                <th>Exam Type/Subject</th>
                                 <th>Batch</th>
-                                <th>Subject</th>
                                 <th>Datetime</th>
                                 <th>Strength</th>
                                 <th>Status</th>
@@ -42,13 +41,21 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                 foreach ($query_run as $exam) {
                             ?>
                                     <tr>
-                                        <td><?= $exam['id']; ?></td>
-                                        <td><?= $exam['exam_name']; ?></td>
-                                        <td><?= $exam['deptname'] . ' ' . $exam['batchyear']; ?></td>
-                                        <td><?= $exam['exam_subject_code'] . '-' . $exam['exam_subject_name']; ?></td>
-                                        <td><?= $exam['exam_date'] . ' (' . $exam['exam_start_time'] . ' to ' . $exam['exam_end_time'] . ')'; ?></td>
-                                        <!-- <td><?= $exam['exam_capacity']; ?></td> -->
+                                        <td><small><?= $exam['id']; ?></small></td>
                                         <td>
+                                            <small>
+                                                <?= $exam['exam_name']; ?><br>
+                                                <?= '(' . $exam['exam_subject_name'] . ' - ' . $exam['exam_subject_code'] . ')'; ?>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small><?= $exam['deptname'] . ' ' . $exam['batchyear']; ?></small>
+                                        </td>
+                                        <td>
+                                            <small><?= $exam['exam_date'] . ' (' . $exam['exam_start_time'] . ' to ' . $exam['exam_end_time'] . ')'; ?></small>
+                                        </td>
+                                        <td>
+                                            <small>
                                             <?php
                                                 $query = "SELECT count(*) as student_strength FROM tbl_student WHERE student_department='".$exam['exam_dept']."' AND student_batch='".$exam['exam_batch']."';";
                                                 $query_run = mysqli_query($conn, $query);
@@ -58,14 +65,21 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                                     echo "(" . $row['student_strength'] . ")";
                                                 }
                                             ?>
+                                            </small>
                                         </td>
                                         <td>
+                                            <small>
                                             <?php
                                                 $statuses = ['Not Seated', 'Seated', 'Ongoing', 'Completed'];
                                                 $classess = ['bg-secondary', 'bg-primary', 'bg-info', 'bg-success'];
 
                                                 echo '<span class="text-white badge '.$classess[$exam['status']].'">' . $statuses[$exam['status']] . '</span>';
+
+                                                if ($exam['is_notified'] != null) {
+                                                    echo " | <i data-bs-toggle='tooltip' title='".$exam['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
+                                                }
                                             ?>
+                                            </small>
                                         </td>
                                         <td>
                                             <a href="exam_create_edit.php?id=<?= $exam['id']; ?>" class="btn btn-info btn-sm">Edit</a>
