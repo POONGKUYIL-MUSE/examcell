@@ -17,7 +17,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                     echo "<h4>Hi " . $_SESSION['firstname'] . ' ' . $_SESSION['lastname'] . ' ...!</h4>';
                     echo "<hr>";
                     if ($_SESSION['admin']) { ?>
-                        <button id="run_cron_manual" onclick="run_cron_manual();" type="button" class="float-end btn btn-warning">Manually Run CRON Job</button><br>
+                        <button id="run_cron_manual" onclick="run_cron_manual();" type="button" class="float-end btn btn-warning"><i class="fa fa-bell" aria-hidden="true"></i> Manually Run CRON Job</button><br>
                         <hr>
                         <table class="table table-bordered table-striped">
                             <thead>
