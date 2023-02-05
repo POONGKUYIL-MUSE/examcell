@@ -658,3 +658,17 @@ function unique(list) {
 function padTo2Digits(num) {
     return String(num).padStart(2, '0');
 }
+
+function run_cron_manual() {
+    $('#run_cron_manual').attr('disabled', 'disabled');
+    $.ajax({
+        type: 'GET',
+        url: 'cron_job.php',
+        success: function (data) {
+            $('#run_cron_manual').removeAttr('disabled');
+        },
+        error: function(){
+            alert('Could not run cron manually');
+        }
+    });
+}
