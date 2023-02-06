@@ -15,7 +15,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
             <div class="text-center">
                 <img src="../assets/images/avatar.png" alt="">
             </div>
-            <h1 class="text-center p-3">ADMIN LOGIN</h1>
+            <h1 class="text-center p-3">STAFF LOGIN</h1>
             <?php /*if (isset($_GET['error'])) { ?>
                 <div class="alert alert-danger" role="alert">
                     <?= lang($_GET['error']) ?>
@@ -35,6 +35,9 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                 </div> -->
             <div class="text-center">
                 <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="text-center">
+                <a href="forgot_pass.php">(Forgot Password)</a>
             </div>
         </form>
 </div>

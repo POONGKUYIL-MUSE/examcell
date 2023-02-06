@@ -42,6 +42,8 @@
     </div>
 
     <script src="../assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src='../assets/jquery.min.js'></script>
+    <script src='../assets/jquery_validation/dist/jquery.validate.js'></script>
     <script>
         $(function() {
             $("#student_login_form").validate({
