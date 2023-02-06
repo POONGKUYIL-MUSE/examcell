@@ -18,7 +18,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                     </div>
                 </div>
                 <hr>
-                <?php include 'message.php'; ?>
+                <?php include '../helpers/message.php'; ?>
                 <div>
                     <?php
                     if (isset($_GET['id'])) {
