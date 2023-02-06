@@ -574,13 +574,21 @@ if (isset($_POST['update_exam'])) {
 if (isset($_POST['delete_exam'])) {
     $exam_id = mysqli_real_escape_string($conn, $_POST['delete_exam']);
 
-    $query = "DELETE FROM tbl_exams WHERE id='$exam_id' ";
+    $query = "SELECT id FROM tbl_hall_student where exam_id='".$exam_id."';";
     $query_run = mysqli_query($conn, $query);
-
-    if ($query_run) {
-        $_SESSION['message'] = "Exam Deleted Successfully";
-        header("Location: exams.php");
-        exit(0);
+    if (mysqli_num_rows($query_run) == 0) {
+        $query = "DELETE FROM tbl_exams WHERE id='$exam_id' ";
+        $query_run = mysqli_query($conn, $query);
+    
+        if ($query_run) {
+            $_SESSION['message'] = "Exam Deleted Successfully";
+            header("Location: exams.php");
+            exit(0);
+        } else {
+            $_SESSION['message'] = "Exam Not Deleted";
+            header("Location: exams.php");
+            exit(0);
+        }
     } else {
         $_SESSION['message'] = "Exam Not Deleted";
         header("Location: exams.php");
@@ -1774,6 +1782,38 @@ if (isset($_POST['change_staff_password'])) {
             "success" => false
         ]);
     }
+}
+
+if (isset($_POST['reset_exam_hall'])) {
+    $exam_date = $_POST['reset_exam_date'];
+    $exam_date = date("Y-m-d", strtotime($exam_date));
+
+    $query = "SELECT DISTINCT(exam_id) FROM tbl_hall_student where hall_id IN (SELECT id FROM tbl_halls where date='".$exam_date."');";
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $exam) {
+            $query = "UPDATE tbl_exams SET status=0, is_notified=NULL WHERE id='".$exam['exam_id']."'";
+            mysqli_query($conn, $query);
+        }
+    }
+    
+    $query = "SELECT id FROM tbl_halls WHERE date='".$exam_date."'";
+    $query_run = mysqli_query($conn, $query);
+    $count=0;
+    $k = 0;
+    if (mysqli_num_rows($query_run) > 0) {
+        $count = mysqli_num_rows($query_run);
+        foreach ($query_run as $hall) { 
+            $query = "DELETE FROM tbl_hall_student WHERE hall_id='" . $hall['id'] . "'";
+            mysqli_query($conn, $query);
+
+            $query = "DELETE FROM tbl_halls WHERE id='".$hall['id']."'";
+            mysqli_query($conn, $query);
+            $k = $k + 1;
+        }
+    }
+
+    header("Location: halls.php");
 }
 
 function get_room_name($hall_id) {

@@ -15,6 +15,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         <h4>Manage Halls</h4>
                     </div>
                     <div class="col-md-4">
+                        <a href="#" class="btn btn-danger reset_halls rounded ms-2 float-end">Reset Hall</a>
                         <a href="hall_create_edit.php" class="btn btn-success rounded float-end">Allocate Hall</a>
                     </div>
                 </div>
@@ -65,9 +66,6 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                             <form action="controller.php" method="POST" class="d-inline">
                                                 <button type="submit" name="hall_pdf_maker" value="<?= $hall['id']; ?>" class="btn btn-info btn-sm">PDF</button>
                                             </form>
-                                            <form action="controller.php" method="POST" class="d-inline">
-                                                <button type="submit" name="delete_exam" value="<?= $hall['id']; ?>" class="btn btn-danger btn-sm">Delete</button>
-                                            </form>
                                         </td>
                                     </tr>
                             <?php
@@ -81,6 +79,26 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                     </table>
 
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" tabindex="-1" id="reset_halls" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reset Exam Halls</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="controller.php" id="resetExamHallForm" name="reset_exam_hall" role="form" method="POST">
+                <div class="modal-body">
+                    <label for="reset_exam_date" class="form-label">Exam Date</label>
+                    <input type="text" id="reset_exam_date" class="form-control datepicker" name="reset_exam_date" autofocus>
+                </div>
+                <div class="modal-footer">					
+					<input type="submit" name="reset_exam_hall" class="btn btn-danger btn-sm" value="Reset" id="submit">
+				</div>
+                </form>
             </div>
         </div>
     </div>

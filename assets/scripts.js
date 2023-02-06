@@ -447,6 +447,13 @@ $(function () {
         }
     });
 
+    $('.reset_halls').on('click', function () {
+        var resetHallModal = new bootstrap.Modal(document.getElementById('reset_halls'), {
+            keyboard: false
+        });
+        resetHallModal.toggle();
+    });
+
     $('.show_exam_detail').on('click', function () {
         $('#show_exam_detail .modal-content').empty();
         var hall_id = $(this).data('hall_id');
