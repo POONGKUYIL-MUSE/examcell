@@ -1445,7 +1445,7 @@ if (isset($_POST['hall_pdf_maker'])) {
 
     $k = 1;
     for ($i=0; $i<count($exam_details); $i++) {
-        $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
+        // $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
         for ($j=0; $j<count($students); $j++) {
             if ($exam_ids[$i] == $students[$j][0]) {
                 $content .= '<tr align="center"><td>'.$k.'</td><td>'.$students[$j][1].'</td><td>'.$students[$j][2].'</td></tr>';

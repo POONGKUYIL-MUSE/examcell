@@ -187,7 +187,7 @@ if (mysqli_num_rows($query_run) > 0) {
     
         $k = 1;
         for ($i=0; $i<count($exam_details); $i++) {
-            $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
+            // $content .= '<tr><td colspan="3" align="center"><b>Exam: '.$exam_details[$i]['exam_name'] . ' - ' . $exam_details[$i]['exam_subject_name'] . ' ' . $exam_details[$i]['exam_subject_code'].'</b></td></tr>';
             for ($j=0; $j<count($students); $j++) {
                 if ($exam_details[$i]['exam_id'] == $students[$j][0]) {
                     $content .= '<tr align="center"><td>'.$k.'</td><td>'.$students[$j][1].'</td><td>'.$students[$j][2].'</td></tr>';
@@ -243,13 +243,13 @@ function send_email($toEmail, $subject, $content, $attachment = []) {
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPAuth = true;
-    $mail->Username = 'your_admin_email';   // From address
-    $mail->Password = 'app_specific_password';   // App specific password
+    $mail->Username = 'ngpasc.examcell@gmail.com';   // From address
+    $mail->Password = 'your_app_specific_password';   // App specific password
     $mail->SMTPSecure = 'ssl';
     $mail->Port = 465;
     
     // Set From Email Address
-    $mail->setFrom('your_admin_email');
+    $mail->setFrom('ngpasc.examcell@gmail.com');
     // Set To Email Address
     $mail->addAddress($toEmail);
     
