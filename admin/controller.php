@@ -801,12 +801,11 @@ if (isset($_POST['save_halls'])) {
 
     for ($i = 0; $i < count($exam_halls); $i++) {
         // $query = "SELECT * FROM tbl_room WHERE id='".$exam_halls[$i]."'";
-        $query = "SELECT tbl_room.*, if((tbl_halls.remaining is null OR tbl_halls.remaining=0), tbl_room.capacity, tbl_halls.remaining) as avail_capacity, tbl_department.deptname as deptname, tbl_block.block as blockname FROM tbl_room LEFT JOIN tbl_halls ON tbl_room.id = tbl_halls.room INNER JOIN tbl_department ON tbl_room.dept = tbl_department.id INNER JOIN tbl_block ON tbl_room.block=tbl_block.id WHERE tbl_room.id='" . $exam_halls[$i] . "';";
+        $query = "SELECT tbl_room.*, if((tbl_halls.date='".$hall_date."' AND tbl_halls.start_time='".$start_time."' AND tbl_halls.end_time='".$end_time."') AND (tbl_halls.remaining>=0), tbl_halls.remaining, tbl_room.capacity) as avail_capacity, tbl_department.deptname as deptname, tbl_block.block as blockname FROM tbl_room LEFT JOIN tbl_halls ON tbl_room.id = tbl_halls.room INNER JOIN tbl_department ON tbl_room.dept = tbl_department.id INNER JOIN tbl_block ON tbl_room.block=tbl_block.id WHERE tbl_room.id='" . $exam_halls[$i] . "';";
         $query_run = mysqli_query($conn, $query);
         if (mysqli_num_rows($query_run) > 0) {
             foreach ($query_run as $hall) {
                 $t['hall_capacity'] = $hall['avail_capacity'];
-
                 $r = $total_capacity - $hall['avail_capacity'];
                 if ($r >= 0) {
                     $allocated = $hall['avail_capacity'];
@@ -817,9 +816,7 @@ if (isset($_POST['save_halls'])) {
                 }
 
                 $total_capacity = $r;
-
                 array_push($hall_query, "INSERT INTO tbl_halls (date, start_time, end_time, room, exam_details, allocated, remaining, notify_date) VALUES('" . $hall_date . "', '" . $start_time . "', '" . $end_time . "', " . $hall['id'] . ", '" . json_encode($exams) . "', " . $allocated . ", " . $remain . ", '" . $notify_date . "');");
-                
                 array_push($halls, $t);
             }
         }
@@ -827,9 +824,6 @@ if (isset($_POST['save_halls'])) {
     
     $total_query = count($hall_query);
     
-    // echo "<br><br>";
-    // print_r($hall_query);
-    // echo "<br><br>";
     $k = 0;
     $stud_pos = [];
     $seating_query = [];
@@ -856,21 +850,21 @@ if (isset($_POST['save_halls'])) {
                 $step = count($cur_exams);
             }
 
-            // print_r($cur_exams);
-            // print_r($stud_pos);
-            // print_r($step);
-            // echo "<br>";
-            for ($i=0; $i<$allocated; $i++) {
+            $i = 0;
+            while($i<$allocated) {
                 if ($k == $step) {
                     $k=0;
                 }
-                array_push($seating_query, "INSERT INTO tbl_hall_student (hall_id, exam_id, s_id) VALUES (" . $insert_id . " , " . $cur_exams[$k] . ", " . $students[$k][$stud_pos[$k]] . ");");
-                // echo $insert_id . " " . $cur_exams[$k] . " " . $students[$k][$stud_pos[$k]] . " " . $i . '<br>';
-                $stud_pos[$k] = $stud_pos[$k] + 1;
-                $k++;
-
+                if (isset($students[$k][$stud_pos[$k]])) {
+                    array_push($seating_query, "INSERT INTO tbl_hall_student (hall_id, exam_id, s_id) VALUES (" . $insert_id . " , " . $cur_exams[$k] . ", " . $students[$k][$stud_pos[$k]] . ");");
+                    $stud_pos[$k] = $stud_pos[$k] + 1;
+                    $k++;
+                    $i++;
+                } else {
+                    $stud_pos[$k] = $stud_pos[$k] + 1;
+                    $k++;
+                }
             }
-            // echo "<br>";
         }
     }
 
@@ -878,25 +872,11 @@ if (isset($_POST['save_halls'])) {
         mysqli_query($conn, $query);
     }
 
-    // echo "<br><br>";
-    // echo "updates";
-    // echo "<br><br>";
-
     $j = 0;
     foreach ($exam_details as $detail) {
-        // $query_run = mysqli_query($conn, $query);
-        // if ($query_run) {
-            $query_update = "UPDATE tbl_exams SET status=1 WHERE id='" . $detail . "'";
-            // print_r($query_update);
-            $query_run = mysqli_query($conn, $query_update);
-            if ($query_run) {
-            }
-
-            
-        // }
+        $query_update = "UPDATE tbl_exams SET status=1 WHERE id='" . $detail . "'";
+        $query_run = mysqli_query($conn, $query_update);
     }
-
-
 
     if ($j == $total_query) {
         $_SESSION['message'] = "Halls Added Successfully";
@@ -1672,21 +1652,24 @@ if (isset($_POST['exam_report_download'])) {
         $dimensions = $pdf->getPageDimensions();
         $i=1;
         $content = '<table border="0" cellspacing="0" cellpadding="10">';
+        $total_counts = [];
+        $hall_count = count($hall_details);
         foreach ($hall_details as $id => $detail) {
             if ($i%2 == 1) {
                 $content .= '<tr>';
             }
             $content .= '<td align="center">';
-            $content .= '<b>Room ID : ' . get_room_name($id) . '</b><br><br>';
+            $content .= '<b>Room No : ' . get_room_name($id) . '</b><br><br>';
             foreach ($detail['students'] as $batch => $student) {
 
                 $content .= ''. get_exam_batch($batch) . ' (';
                 $content .= $student[0] . ' - ' . $student[count($student) - 1];
                 $content .= ')<br><br>';
+                $total_counts[$batch] += count($student);
             }
             $content .= '</td>';
 
-            if ($i%2 != 1) {
+            if ($i%2 != 1 || $hall_count == $i) {
                 $content .= '</tr>';
             }
             $i++;
@@ -1694,6 +1677,10 @@ if (isset($_POST['exam_report_download'])) {
         $content .= '</table>';
 
         $pdf->writeHTML($content);
+        $pdf->writeHTML('<b>Total Count of Students</b>');
+        foreach ($total_counts as $batch => $c) {
+            $pdf->writeHTML(get_exam_batch($batch) . ' : ' . $c);
+        }
     }
 
     $file_location = "C://xampp/htdocs/examcell/uploads/"; //for local xampp server
