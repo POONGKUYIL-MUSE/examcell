@@ -801,7 +801,8 @@ if (isset($_POST['save_halls'])) {
 
     for ($i = 0; $i < count($exam_halls); $i++) {
         // $query = "SELECT * FROM tbl_room WHERE id='".$exam_halls[$i]."'";
-        $query = "SELECT tbl_room.*, if((tbl_halls.date='".$hall_date."' AND tbl_halls.start_time='".$start_time."' AND tbl_halls.end_time='".$end_time."') AND (tbl_halls.remaining>=0), tbl_halls.remaining, tbl_room.capacity) as avail_capacity, tbl_department.deptname as deptname, tbl_block.block as blockname FROM tbl_room LEFT JOIN tbl_halls ON tbl_room.id = tbl_halls.room INNER JOIN tbl_department ON tbl_room.dept = tbl_department.id INNER JOIN tbl_block ON tbl_room.block=tbl_block.id WHERE tbl_room.id='" . $exam_halls[$i] . "';";
+        $query = "SELECT tbl_room.*, if((tbl_halls.date='".$hall_date."' AND tbl_halls.start_time='".$start_time."' AND tbl_halls.end_time='".$end_time."') AND (tbl_halls.remaining>=0), tbl_halls.remaining, tbl_room.capacity) as avail_capacity, tbl_department.deptname as deptname, tbl_block.block as blockname FROM tbl_room LEFT JOIN tbl_halls ON (tbl_room.id = tbl_halls.room AND (tbl_halls.date='".$hall_date."' OR tbl_halls.date=null)) INNER JOIN tbl_department ON tbl_room.dept = tbl_department.id INNER JOIN tbl_block ON tbl_room.block=tbl_block.id WHERE tbl_room.id='" . $exam_halls[$i] . "';";
+        
         $query_run = mysqli_query($conn, $query);
         if (mysqli_num_rows($query_run) > 0) {
             foreach ($query_run as $hall) {
@@ -1839,34 +1840,37 @@ function get_exam_dept($dept) {
  */
 function send_email($toEmail, $subject, $content, $attachment = []) {
 
-    // PHPMailer Mail Configuration
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'ngpasc.examcell@gmail.com';   // From address
-    $mail->Password = 'your_app_specific_password';   // App specific password
-    $mail->SMTPSecure = 'ssl';
-    $mail->Port = 465;
+    if (SEND_EMAIL === TRUE) {
+        
+        // PHPMailer Mail Configuration
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = EMAIL_HOST;
+        $mail->SMTPAuth = EMAIL_AUTH;
+        $mail->Username = EMAIL_USERNAME;
+        $mail->Password = EMAIL_PASSWORD;
+        $mail->SMTPSecure = EMAIL_SECURE;
+        $mail->Port = EMAIL_PORT;
+        
+        // Set From Email Address
+        $mail->setFrom(EMAIL_USERNAME);
+        // Set To Email Address
+        $mail->addAddress($toEmail);
+        
+        // Subject and Content of the Mail
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $content;
     
-    // Set From Email Address
-    $mail->setFrom('ngpasc.examcell@gmail.com');
-    // Set To Email Address
-    $mail->addAddress($toEmail);
-    
-    // Subject and Content of the Mail
-    $mail->isHTML(true);
-    $mail->Subject = $subject;
-    $mail->Body = $content;
-
-    if (count($attachment) != 0) {
-        $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
-    }
-    
-    // Sending the email
-    if ($mail->send()) {
-        return true;
-    } else {
-        return false;
+        if (count($attachment) != 0) {
+            $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
+        }
+        
+        // Sending the email
+        if ($mail->send()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -238,32 +238,35 @@ if (mysqli_num_rows($query_run) > 0) {
  */
 function send_email($toEmail, $subject, $content, $attachment = []) {
 
-    // PHPMailer Mail Configuration
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'ngpasc.examcell@gmail.com';   // From address
-    $mail->Password = 'your_app_specific_password';   // App specific password
-    $mail->SMTPSecure = 'ssl';
-    $mail->Port = 465;
-    
-    // Set From Email Address
-    $mail->setFrom('ngpasc.examcell@gmail.com');
-    // Set To Email Address
-    $mail->addAddress($toEmail);
-    
-    // Subject and Content of the Mail
-    $mail->isHTML(true);
-    $mail->Subject = $subject;
-    $mail->Body = $content;
+    if (SEND_EMAIL === TRUE) {
 
-    if (count($attachment) != 0) {
-        $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
-    }
+        // PHPMailer Mail Configuration
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = EMAIL_HOST;
+        $mail->SMTPAuth = EMAIL_AUTH;
+        $mail->Username = EMAIL_USERNAME;
+        $mail->Password = EMAIL_PASSWORD;
+        $mail->SMTPSecure = EMAIL_SECURE;
+        $mail->Port = EMAIL_PORT;
+        
+        // Set From Email Address
+        $mail->setFrom(EMAIL_USERNAME);
+        // Set To Email Address
+        $mail->addAddress($toEmail);
+        
+        // Subject and Content of the Mail
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $content;
     
-    // Sending the email
-    $mail->send();
+        if (count($attachment) != 0) {
+            $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
+        }
+        
+        // Sending the email
+        $mail->send();
+    }
 }
 
 function get_staff_email($staff_id) {

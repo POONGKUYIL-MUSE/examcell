@@ -83,35 +83,38 @@ if (isset($_POST['check_email_exists'])) {
  */
 function send_email($toEmail, $subject, $content, $attachment = []) {
 
-    // PHPMailer Mail Configuration
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'ngpasc.examcell@gmail.com';   // From address
-    $mail->Password = 'your_specific_password';   // App specific password
-    $mail->SMTPSecure = 'ssl';
-    $mail->Port = 465;
+    if (SEND_EMAIL === TRUE) {
+        
+        // PHPMailer Mail Configuration
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = EMAIL_HOST;
+        $mail->SMTPAuth = EMAIL_AUTH;
+        $mail->Username = EMAIL_USERNAME;
+        $mail->Password = EMAIL_PASSWORD;
+        $mail->SMTPSecure = EMAIL_SECURE;
+        $mail->Port = EMAIL_PORT;
+        
+        // Set From Email Address
+        $mail->setFrom(EMAIL_USERNAME);
+        // Set To Email Address
+        $mail->addAddress($toEmail);
+        
+        // Subject and Content of the Mail
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $content;
     
-    // Set From Email Address
-    $mail->setFrom('ngpasc.examcell@gmail.com');
-    // Set To Email Address
-    $mail->addAddress($toEmail);
-    
-    // Subject and Content of the Mail
-    $mail->isHTML(true);
-    $mail->Subject = $subject;
-    $mail->Body = $content;
-
-    if (count($attachment) != 0) {
-        $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
-    }
-    
-    // Sending the email
-    if ($mail->send()) {
-        return true;
-    } else {
-        return false;
+        if (count($attachment) != 0) {
+            $mail->AddStringAttachment($attachment[1], $attachment[0], 'base64', 'application/pdf');
+        }
+        
+        // Sending the email
+        if ($mail->send()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
