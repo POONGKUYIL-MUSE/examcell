@@ -106,7 +106,8 @@ CREATE TABLE `tbl_exams` (
   `exam_end_time` varchar(64) DEFAULT NULL,
   `exam_dept` int(11) NOT NULL,
   `exam_batch` int(11) NOT NULL,
-  `status` int(11) NOT NULL
+  `status` int(11) NOT NULL,
+  `event_id` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
