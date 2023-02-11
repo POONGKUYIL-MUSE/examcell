@@ -1517,7 +1517,7 @@ function pdf_multi_row($left, $right, $pdf, $left_width = 40)
 }
 
 function get_staff_name($staff_id) {
-    require '../database/config.php';
+    global $conn;
     $query = "SELECT tbl_staff.firstname, tbl_staff.lastname FROM tbl_staff WHERE tbl_staff.id='".$staff_id."'";
     $query_run = mysqli_query($conn,$query);
     if ($query_run) {
@@ -1804,8 +1804,63 @@ if (isset($_POST['reset_exam_hall'])) {
     header("Location: halls.php");
 }
 
+if (isset($_POST['exam_set_event'])) {
+    $exam_id = $_POST['exam_set_event'];
+
+    $query = "SELECT tbl_exams.*, HOUR(tbl_exams.exam_start_time) as exam_hour FROM tbl_exams WHERE id='".$exam_id."'";
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $exams) {
+            $title = $exams['exam_name'] . ' ' . $exams['exam_subject_name'] . ' ' . $exams['exam_subject_code'];
+            $description = '';
+            $description .= 'Your exam is about to begin in few hours<br>';
+            $description .= 'Exam Timings : '.$exams['exam_start_time'] . ' to ' . $exams['exam_end_time'].'<br>';
+            $description .= '<a href="localhost/examcell/student">Check your allotted room no</a><br>';
+            $description .= 'All the Best!';
+        
+            $date = date("Y-m-d", strtotime($exams['exam_date']));
+
+            // Two hours before exam start time
+            $time_from = date("H:i:s", strtotime(($exams['exam_hour']-2).':00'));
+            $time_to = date("H:i:s", strtotime($exams['exam_start_time']));
+        
+            $attendees = [];
+            $query = "SELECT * FROM tbl_student WHERE student_department='".$exams['exam_dept']."' AND student_batch='".$exams['exam_batch']."'";
+            $query_run = mysqli_query($conn, $query);
+            if (mysqli_num_rows($query_run) > 0) {
+                foreach ($query_run as $student) {
+                    array_push($attendees, $student['email']);
+                }
+            }
+        
+            $sqlQ = "INSERT INTO events (title,description,date,time_from,time_to,attendees,created) VALUES (?,?,?,?,?,?,NOW())"; 
+            $stmt = $conn->prepare($sqlQ); 
+            $stmt->bind_param("ssssss", $notify_title, $notify_description, $notify_date, $notify_start, $notify_end,$notify_attendees); 
+            $notify_title = $title; 
+            $notify_description = $description; 
+            $notify_date = $date; 
+            $notify_start = $time_from; 
+            $notify_end = $time_to;
+            $notify_attendees = json_encode($attendees);
+            $insert = $stmt->execute();
+                
+            if($insert){ 
+                $event_id = $stmt->insert_id; 
+
+                $query_update = "UPDATE tbl_exams SET event_id=$event_id WHERE id='" . $exam_id . "'";
+                $query_run = mysqli_query($conn, $query_update);
+                    
+                // Store event ID in session 
+                $_SESSION['last_event_id'] = $event_id; 
+                    
+                header("Location: $googleOauthURL"); 
+            }
+        }
+    }
+}
+
 function get_room_name($hall_id) {
-    require '../database/config.php';
+    global $conn;
     $query = "SELECT tbl_room.room FROM tbl_room INNER JOIN tbl_halls ON tbl_halls.room=tbl_room.id WHERE tbl_halls.id='".$hall_id."'";
     $query_run = mysqli_query($conn, $query);
     if ($query_run) {
@@ -1815,7 +1870,7 @@ function get_room_name($hall_id) {
 }
 
 function get_exam_batch($batch) {
-    require '../database/config.php';
+    global $conn;
     $query = "SELECT tbl_batch.batchyear FROM tbl_batch WHERE tbl_batch.id='".$batch."'";
     $query_run = mysqli_query($conn, $query);
     if ($query_run) {
@@ -1825,7 +1880,7 @@ function get_exam_batch($batch) {
 }
 
 function get_exam_dept($dept) {
-    require '../database/config.php';
+    global $conn;
     $query = "SELECT tbl_department.deptname FROM tbl_department WHERE tbl_department.id='".$dept."'";
     $query_run = mysqli_query($conn, $query);
     if ($query_run) {

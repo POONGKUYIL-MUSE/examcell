@@ -29,7 +29,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                 <th>Datetime</th>
                                 <th>Strength</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th width="15%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,6 +78,10 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                                 if ($exam['is_notified'] != null) {
                                                     echo " | <i data-bs-toggle='tooltip' title='".$exam['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
                                                 }
+
+                                                if ($exam['event_id'] != 0) {
+                                                    echo ' | Event Created';
+                                                }
                                             ?>
                                             </small>
                                         </td>
@@ -85,9 +89,14 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                             <a href="exam_create_edit.php?id=<?= $exam['id']; ?>" class="btn btn-info btn-sm">Edit</a>
                                             <form action="controller.php" method="POST" class="d-inline">
                                                 <button type="submit" name="student_sheet_pdf_maker" value="<?= $exam['id']; ?>" class="btn btn-info btn-sm">PDF</button>
-                                            </form>
+                                            </form><br>
+                                            <?php if ($exam['status'] == 1 && $exam['event_id']==0) { ?>
+                                                <form action="controller.php" method="POST" class="d-inline">
+                                                    <button type="submit" name="exam_set_event" value="<?= $exam['id']; ?>" class="btn btn-warning btn-sm mt-1">SET EVENT</button>
+                                                </form>
+                                            <?php } ?>
                                             <form action="controller.php" method="POST" class="d-inline">
-                                                <button type="submit" name="delete_exam" value="<?= $exam['id']; ?>" class="btn btn-danger btn-sm">Delete</button>
+                                                <button type="submit" name="delete_exam" value="<?= $exam['id']; ?>" class="btn btn-danger btn-sm mt-1">Delete</button>
                                             </form>
                                         </td>
                                     </tr>
