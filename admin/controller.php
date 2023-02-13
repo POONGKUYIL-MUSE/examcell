@@ -1663,10 +1663,10 @@ if (isset($_POST['exam_report_download'])) {
             $content .= '<b>Room No : ' . get_room_name($id) . '</b><br><br>';
             foreach ($detail['students'] as $batch => $student) {
 
+                $total_counts[$batch] += count($student);
                 $content .= ''. get_exam_batch($batch) . ' (';
                 $content .= $student[0] . ' - ' . $student[count($student) - 1];
-                $content .= ')<br><br>';
-                $total_counts[$batch] += count($student);
+                $content .= ') [count:'.count($student).']<br><br>';
             }
             $content .= '</td>';
 
