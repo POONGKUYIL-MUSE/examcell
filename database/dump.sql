@@ -85,6 +85,24 @@ INSERT INTO `tbl_department` (`id`, `deptname`, `deptslug`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `events`
+--
+	CREATE TABLE `events` (
+ `id` int(11) NOT NULL,
+ `title` varchar(255) NOT NULL,
+ `description` text NOT NULL,
+ `location` varchar(255) DEFAULT NULL,
+ `date` date NOT NULL,
+ `time_from` time NOT NULL,
+ `time_to` time NOT NULL,
+ `attendees` longtext DEFAULT NULL,
+ `google_calendar_event_id` varchar(255) DEFAULT NULL,
+ `created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tbl_exams`
 --
 
@@ -273,6 +291,12 @@ ALTER TABLE `tbl_department`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `events`
+--
+ALTER TABLE `events`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `tbl_exams`
 --
 ALTER TABLE `tbl_exams`
@@ -343,6 +367,12 @@ ALTER TABLE `tbl_block`
 --
 ALTER TABLE `tbl_department`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `events`
+--
+ALTER TABLE `events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `tbl_exams`

@@ -17,6 +17,16 @@ $(function () {
     var site_url = 'http://localhost/examcell/';
     console.log("opening");
 
+    setInterval(function() {
+        console.log("cron run");
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.open('GET','cron_job.php',false);
+        xmlhttp.send(null);
+        // document.getElementById('statusshow').innerHTML = xmlhttp.responseText;
+    },(60000 * 1));
+    // (60000 * 1) => one minute
+    // (60000 * 120) => 2 hours
+
     $("#student_form").validate({
         rules: {
             regno: {required:true},
