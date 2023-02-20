@@ -1567,9 +1567,9 @@ if (isset($_POST['exam_report_download'])) {
     $pdf->SetMargins(PDF_MARGIN_LEFT, '5', PDF_MARGIN_RIGHT);
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
-    $pdf->SetAutoPageBreak(TRUE, 10);
+    $pdf->SetAutoPageBreak(TRUE, 30);
     $pdf->SetFont('helvetica', '', 12);
-    $pdf->AddPage(); //default A4
+    $pdf->AddPage('', '', true); //default A4
     //$pdf->AddPage('P','A5'); //when you require custome page size
 
     $hall_details = [];
@@ -1630,7 +1630,7 @@ if (isset($_POST['exam_report_download'])) {
                             $query_run = mysqli_query($conn, $query);
                             if (mysqli_num_rows($query_run) > 0) {
                                 foreach ($query_run as $stud) {
-                                    if ($students[$stud['student_batch']] == []) {
+                                    if (!isset($students[$stud['student_batch']])) {
                                         $students[$stud['student_batch']] = [];
                                         array_push($students[$stud['student_batch']], $stud['regno']);
                                     }
@@ -1650,7 +1650,6 @@ if (isset($_POST['exam_report_download'])) {
     }
 
     if (count($hall_details) > 0) {
-        $dimensions = $pdf->getPageDimensions();
         $i=1;
         $content = '<table border="0" cellspacing="0" cellpadding="10">';
         $total_counts = [];
@@ -1663,7 +1662,11 @@ if (isset($_POST['exam_report_download'])) {
             $content .= '<b>Room No : ' . get_room_name($id) . '</b><br><br>';
             foreach ($detail['students'] as $batch => $student) {
 
-                $total_counts[$batch] += count($student);
+                if (isset($total_counts[$batch])) {
+                    $total_counts[$batch] += count($student);
+                } else {
+                    $total_counts[$batch] = 0;
+                }
                 $content .= ''. get_exam_batch($batch) . ' (';
                 $content .= $student[0] . ' - ' . $student[count($student) - 1];
                 $content .= ') - ['.count($student).']<br><br>';
@@ -1676,22 +1679,22 @@ if (isset($_POST['exam_report_download'])) {
             $i++;
         }
         $content .= '</table>';
-
+            
         $pdf->writeHTML($content);
         $pdf->writeHTML('<b>Total Count of Students</b>');
         foreach ($total_counts as $batch => $c) {
             $pdf->writeHTML(get_exam_batch($batch) . ' : ' . $c);
         }
     }
-
+    
     $file_location = "C://xampp/htdocs/examcell/uploads/"; //for local xampp server
-
+    
     $datetime = date('dmY_hms');
     $file_name = "HSA_" . $datetime . ".pdf";
     ob_end_clean();
-
+    
     $action = 'view';
-
+    
     if ($action == 'view') {
         $pdf->Output($file_name, 'I'); // I means Inline view
     } else if ($action == 'download') {
