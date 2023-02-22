@@ -955,18 +955,23 @@ if (isset($_POST['get_invigilators'])) {
     if (isset($_POST['id'])) {
 
         $id = $_POST['id'];
-        $query = "SELECT tbl_staff.id as staffid, tbl_staff.firstname, tbl_staff.lastname, tbl_department.deptname FROM tbl_staff INNER JOIN tbl_department ON tbl_department.id=tbl_staff.staff_department WHERE admin=0 AND active=1 ORDER BY tbl_department.deptname, tbl_staff.firstname ASC";
+        $hall_date = $_POST['hall_date'];
+        $hall_start_time = $_POST['start_time'];
+        $hall_end_time = $_POST['end_time'];
+        $query = "SELECT tbl_staff.id as staffid, tbl_staff.firstname, tbl_staff.lastname, tbl_department.deptname, tbl_halls.date, tbl_halls.start_time, tbl_halls.end_time FROM tbl_staff INNER JOIN tbl_department ON tbl_department.id=tbl_staff.staff_department LEFT JOIN tbl_halls ON (tbl_staff.id=tbl_halls.staff AND tbl_halls.date='".$hall_date."' AND tbl_halls.start_time='".$hall_start_time."' AND tbl_halls.end_time='".$hall_end_time."') WHERE admin=0 AND active=1 ORDER BY tbl_department.deptname, tbl_staff.firstname ASC";
         $staffs = [];
 
         $query_run = mysqli_query($conn, $query);
         if (mysqli_num_rows($query_run) > 0) {
             foreach ($query_run as $staff) {
-                $temp['staff_id'] = $staff['staffid'];
-                $temp['firstname'] = $staff['firstname'];
-                $temp['lastname'] = $staff['lastname'];
-                $temp['deptname'] = $staff['deptname'];
-
-                array_push($staffs, $temp);
+                if ($staff['date'] == null && $staff['start_time'] == null && $staff['end_time'] == null) {
+                    $temp['staff_id'] = $staff['staffid'];
+                    $temp['firstname'] = $staff['firstname'];
+                    $temp['lastname'] = $staff['lastname'];
+                    $temp['deptname'] = $staff['deptname'];
+    
+                    array_push($staffs, $temp);
+                }
             }
         }
         echo json_encode([

@@ -50,13 +50,13 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                                 if (mysqli_num_rows($query_run) > 0) {
                                                     $row = mysqli_fetch_assoc($query_run);
                                                     echo $row['firstname'] . ' ' . $row['lastname'] . '<br><small>(' . $row['deptname'] . ')</small><br>';
-                                                    echo "<a href='#' class='assign_invigilator' data-hall_id='".$hall['id']."'>Change staff</a>";
+                                                    echo "<a href='#' class='assign_invigilator' data-hall_date='".$hall['date']."' data-start_time='".$hall['start_time']."' data-end_time='".$hall['end_time']."' data-hall_id='".$hall['id']."'>Change staff</a>";
                                                     if ($hall['is_notified'] != null) {
                                                         echo " | <i data-bs-toggle='tooltip' title='".$hall['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
                                                     }
                                                 }
                                             } else {
-                                                echo "<a href='#' class='btn btn-primary btn-sm assign_invigilator' data-hall_id='" . $hall['id'] . "'>Assign Staff</a>";
+                                                echo "<a href='#' class='btn btn-primary btn-sm assign_invigilator' data-hall_date='".$hall['date']."' data-start_time='".$hall['start_time']."' data-end_time='".$hall['end_time']."' data-hall_id='" . $hall['id'] . "'>Assign Staff</a>";
                                             }
                                             ?>
                                             </small>

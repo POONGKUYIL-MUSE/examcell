@@ -531,13 +531,19 @@ $(function () {
     $('.assign_invigilator').on('click', function () {
         $('#assign_invigilator .modal-content').empty();
         var hall_id = $(this).data('hall_id');
+        var hall_date = $(this).data('hall_date');
+        var start_time = $(this).data('start_time');
+        var end_time = $(this).data('end_time');
 
         $.ajax({
             type: 'POST',
             url: 'controller.php',
             data: {
                 "get_invigilators": true,
-                "id": hall_id
+                "id": hall_id,
+                "hall_date": hall_date,
+                "start_time": start_time,
+                "end_time": end_time
             },
             success: function (data) {
                 data = JSON.parse(data);
