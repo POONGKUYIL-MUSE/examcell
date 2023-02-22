@@ -1666,6 +1666,7 @@ if (isset($_POST['exam_report_download'])) {
                     $total_counts[$batch] += count($student);
                 } else {
                     $total_counts[$batch] = 0;
+                    $total_counts[$batch] += count($student);
                 }
                 $content .= ''. get_exam_batch($batch) . ' (';
                 $content .= $student[0] . ' - ' . $student[count($student) - 1];
