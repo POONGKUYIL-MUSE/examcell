@@ -10,6 +10,24 @@ require '../assets/phpmailer/src/SMTP.php';
 // current date
 $today = date('Y-m-d');
 
+$email_service = [];
+
+$query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+$query_run = mysqli_query($conn, $query);
+if (mysqli_num_rows($query_run) > 0) {
+    foreach ($query_run as $service) {
+        $email_service['id'] = $service['id'];
+        $email_service['email'] = $service['email'];
+        $properties = json_decode($service['properties']);
+        $email_service['email_username'] = $properties->email_username;
+        $email_service['email_host'] = $properties->email_host;
+        $email_service['email_secure'] = $properties->email_secure;
+        $email_service['email_port'] = $properties->email_port;
+        $email_service['password'] = $properties->password;
+        $email_service['status'] = $service['status'];
+    }
+}
+
 // Status Check for tbl_exams status field
 $query = "SELECT * FROM tbl_exams WHERE tbl_exams.exam_date='$today' AND status != 2";
 $query_run = mysqli_query($conn, $query);
@@ -30,67 +48,8 @@ if (mysqli_num_rows($query_run) > 0) {
     }
 }
 
-// Mail Students on a day before the exam and on the day of the exam
-$query = "SELECT * FROM tbl_exams WHERE (tbl_exams.notify_date = '$today' OR tbl_exams.exam_date = '$today') AND (DATE(tbl_exams.is_notified) != '$today' OR (tbl_exams.is_notified IS NULL));";
-$query_run = mysqli_query($conn, $query);
-if (mysqli_num_rows($query_run) > 0) {
-    foreach ($query_run as $exam) {
-        $exam_details = [];
-        $exam_details['exam_name'] = $exam['exam_name'];
-        $exam_details['exam_date'] = $exam['exam_date'];
-        $exam_details['exam_start_time'] = $exam['exam_start_time'];
-        $exam_details['exam_end_time'] = $exam['exam_end_time'];
-        $exam_details['exam_subject_name'] = $exam['exam_subject_name'];
-        $exam_details['exam_subject_code'] = $exam['exam_subject_code'];
-        $exam_details['exam_dept'] = $exam['exam_dept'];
-        $exam_details['exam_batch'] = $exam['exam_batch'];
-
-        $students = [];
-        if ($exam_details['exam_dept'] != 0 && $exam_details['exam_batch'] != 0) {
-            $query = "SELECT * FROM tbl_student WHERE student_department='".$exam_details['exam_dept']."' AND student_batch='".$exam_details['exam_batch']."' ORDER BY tbl_student.regno ASC";
-            $query_run = mysqli_query($conn, $query);
-            if (mysqli_num_rows($query_run) > 0) {
-                foreach ($query_run as $student) {
-                    $t = [];
-                    $t['regno'] = $student['regno'];
-                    $t['student_name'] = $student['firstname'] . ' ' . $student['lastname'];
-                    $t['email'] = $student['email'];
-
-                    $query="SELECT tbl_room.room, tbl_block.block, tbl_department.deptname FROM tbl_hall_student INNER JOIN tbl_halls ON tbl_halls.id=tbl_hall_student.hall_id INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_block ON tbl_block.id=tbl_room.block INNER JOIN tbl_department ON tbl_department.id=tbl_block.dept WHERE tbl_hall_student.exam_id='".$exam['id']."' AND tbl_hall_student.s_id='".$student['id']."'";
-                    $query_run = mysqli_query($conn, $query);
-                    if (mysqli_num_rows($query_run) > 0) {
-                        $row = mysqli_fetch_array($query_run);
-                        $t['exam_deptname'] = $row['deptname'];
-                        $t['exam_block'] = $row['block'];
-                        $t['exam_room'] = $row['room'];
-                    }
-                                        
-                    array_push($students, $t);
-                }
-            }
-        }
-
-        foreach ($students as $student) {
-
-            $mail_content = 'Hi '.$student['student_name'].'!<br>';
-            $mail_content .= '<b>'.$exam_details['exam_name'] . ' ' . $exam_details['exam_subject_name'] . ' ' . $exam['exam_subject_code'].'</b> on <b>'.$exam['exam_date'].' at '.$exam['exam_start_time'].' to '.$exam['exam_end_time'].'</b> is allotted in the below hall.<br>';
-            $mail_content .= 'Room: '.$student['exam_room'].'<br>';
-            $mail_content .= 'Dept: '.$student['exam_deptname'].'<br>';
-            $mail_content .= 'Block: '.$student['exam_block'].'<br>';
-            $mail_content .= '<br><br>Thank You!';
-
-            send_email($student['email'], 'Exam Hall Allotment', $mail_content);
-
-        }
-        $query = "UPDATE tbl_exams SET is_notified=NOW() WHERE id='".$exam['id']."'";
-        $query_run = mysqli_query($conn, $query);
-        
-    }
-}
-
-// Mail Invigilating staffs on a day before the exam and on the day of the exam
-$attachments = [];
-$query = "SELECT tbl_halls.id as hall_id, tbl_halls.*, tbl_room.id as room_id, tbl_room.*, tbl_department.deptname, tbl_block.block FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_department ON tbl_department.id=tbl_room.dept INNER JOIN tbl_block ON tbl_block.id=tbl_room.block WHERE (tbl_halls.staff != NULL OR tbl_halls.staff != 0) AND (tbl_halls.notify_date = '$today' OR tbl_halls.date = '$today') AND (DATE(tbl_halls.is_notified) != '$today' OR (tbl_halls.is_notified IS NULL))";
+// Mail Staff two day before the exam
+$query = "SELECT tbl_halls.id as hall_id, tbl_halls.*, tbl_room.id as room_id, tbl_room.*, tbl_department.deptname, tbl_block.block FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_department ON tbl_department.id=tbl_room.dept INNER JOIN tbl_block ON tbl_block.id=tbl_room.block WHERE (tbl_halls.staff != NULL OR tbl_halls.staff != 0) AND (tbl_halls.notify_date >= '$today' OR tbl_halls.date <= '$today') AND (DATE(tbl_halls.is_notified) != '$today' OR (tbl_halls.is_notified IS NULL)) LIMIT 4;";
 $query_run = mysqli_query($conn, $query);
 if (mysqli_num_rows($query_run) > 0) {
     foreach ($query_run as $hall) {
@@ -212,46 +171,165 @@ if (mysqli_num_rows($query_run) > 0) {
 
         $datetime = date('dmY_hms');
         $file_name = "HSA_" . $datetime . ".pdf";
-        ob_end_clean();
-
-        // array_push($attachments, $pdf->Output($file_name, 'S'));
+        
 
         if ($hall_details['staff'] != null && $hall_details['staff'] != 0) {
             $staff_mail = get_staff_email($hall_details['staff']);
             $mail_content = 'Hi ' . get_staff_name($hall_details['staff']) . '!<br>';
             $mail_content .= 'You are assigned as an invigilator to the exams that are conducted on <b>'.$hall_details['date'].'</b> at <b>'.$hall_details['start_time'] . ' to ' . $hall_details['end_time'].'</b>.<br>';
             $mail_content .= 'Please follow the seating arrangement plan as per the PDF attached below.';
-            send_email($staff_mail, 'Seating Allotment', $mail_content, [$file_name, $pdf->Output($file_name, 'S')]);
+            if (send_cron_mail($staff_mail, 'Seating Allotment', $mail_content, [$file_name, $pdf->Output($file_name, 'S')])) {
+                $query = "UPDATE tbl_halls SET is_notified= NOW() WHERE id='" . $hall['hall_id'] . "'";
+                $query_run = mysqli_query($conn, $query);
+                sleep(2);
+                continue;
+            } else {
+                // update service
+                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
+                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
+                mysqli_query($conn, $query);
 
-            $query = "UPDATE tbl_halls SET is_notified= NOW() WHERE id='" . $hall_details['hall_id'] . "'";
-            $query_run = mysqli_query($conn, $query);
-            
+                global $email_service;
+                $email_service = [];
+                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                $query_run = mysqli_query($conn, $query);
+                if (mysqli_num_rows($query_run) > 0) {
+                    foreach ($query_run as $service) {
+                        $email_service['id'] = $service['id'];
+                        $email_service['email'] = $service['email'];
+                        $properties = json_decode($service['properties']);
+                        $email_service['email_username'] = $properties->email_username;
+                        $email_service['email_host'] = $properties->email_host;
+                        $email_service['email_secure'] = $properties->email_secure;
+                        $email_service['email_port'] = $properties->email_port;
+                        $email_service['password'] = $properties->password;
+                        $email_service['status'] = $service['status'];
+                    }
+                } else {
+                    exit();
+                }
+            }
         }
-
     }
 }
 
+// Mail Students two day before the exam
+$exam_batched = [];
+$query = "SELECT tbl_hall_student.* FROM tbl_hall_student INNER JOIN tbl_exams ON tbl_exams.id=tbl_hall_student.exam_id WHERE (tbl_exams.notify_date >= '$today' OR tbl_exams.exam_date <= '$today') AND (tbl_exams.batched=-1 OR tbl_exams.batched=1) AND tbl_hall_student.is_notified IS NULL ORDER BY tbl_hall_student.id ASC LIMIT 9;";
+$query_run = mysqli_query($conn, $query);
+if (mysqli_num_rows($query_run) > 0) {
+    foreach ($query_run as $stud) {
+        $query = "SELECT * FROM tbl_exams WHERE id='".$stud['exam_id']."'";
+        $query_run = mysqli_query($conn, $query);
+        if ($query_run) {
+            $exam_details = mysqli_fetch_assoc($query_run);
+            $student = get_student_detail($stud['s_id']);
+            $room = get_room_detail($stud['hall_id']);
+
+            $mail_content = 'Hi '.$student['firstname'] . ' ' . $student['lastname'].'!<br>';
+            $mail_content .= '<b>'.$exam_details['exam_name'] . ' ' . $exam_details['exam_subject_name'] . ' ' . $exam_details['exam_subject_code'].'</b> on <b>'.$exam_details['exam_date'].' at '.$exam_details['exam_start_time'].' to '.$exam_details['exam_end_time'].'</b> is allotted in the below hall.<br>';
+            $mail_content .= 'Room: '.$room['room'].'<br>';
+            $mail_content .= 'Dept: '.$room['deptname'].'<br>';
+            $mail_content .= 'Block: '.$room['block'].'<br>';
+            $mail_content .= '<br><br>Thank You!';
+            
+            if (send_cron_mail($student['email'], 'Exam Hall Allotment', $mail_content)) {
+                if (!in_array($stud['exam_id'], $exam_batched, true)) {
+                    array_push($exam_batched, $stud['exam_id']);
+                }
+                $query = "UPDATE tbl_hall_student SET is_notified=NOW() WHERE id='".$stud['id']."'";
+                $query_run = mysqli_query($conn, $query);
+                sleep(2);
+                continue;
+            } else {
+                // update service
+                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
+                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
+                mysqli_query($conn, $query);
+    
+                global $email_service;
+                $email_service = [];
+                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                $query_run = mysqli_query($conn, $query);
+                if (mysqli_num_rows($query_run) > 0) {
+                    foreach ($query_run as $service) {
+                        $email_service['id'] = $service['id'];
+                        $email_service['email'] = $service['email'];
+                        $properties = json_decode($service['properties']);
+                        $email_service['email_username'] = $properties->email_username;
+                        $email_service['email_host'] = $properties->email_host;
+                        $email_service['email_secure'] = $properties->email_secure;
+                        $email_service['email_port'] = $properties->email_port;
+                        $email_service['password'] = $properties->password;
+                        $email_service['status'] = $service['status'];
+                    }
+                } else {
+                    exit();
+                }
+            }
+        }
+    }
+
+    if ($exam_batched != []) {
+        foreach ($exam_batched as $exam) {
+            $query = "SELECT COUNT(tbl_hall_student.id) as total, COUNT(tbl_hall_student.is_notified) as notified FROM tbl_hall_student WHERE exam_id=$exam;";
+            $query_run = mysqli_query($conn, $query);
+            if ($query_run) {
+                $row = mysqli_fetch_assoc($query_run);
+                if ($row['total'] == $row['notified']) {
+                    $query = "UPDATE tbl_exams SET batched=0 WHERE tbl_exams.id='$exam'";
+                } else {
+                    $query = "UPDATE tbl_exams SET batched=1 WHERE tbl_exams.id='$exam'";
+                }
+
+                $qr = mysqli_query($conn, $query);
+            }
+        }
+    }
+}
+
+function get_student_detail($stud_id) {
+    global $conn;
+    $query = "SELECT id, regno, firstname, lastname, email FROM tbl_student WHERE id=$stud_id";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_assoc($query_run);
+        return $row;
+    }
+}
+function get_room_detail($room_id) {
+    global $conn;
+    $query="SELECT tbl_room.id as room_id, tbl_room.room, tbl_block.block, tbl_department.deptname FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_block ON tbl_block.id=tbl_room.block INNER JOIN tbl_department ON tbl_department.id=tbl_block.dept WHERE tbl_halls.id=$room_id;";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_assoc($query_run);
+        return $row;
+    }
+}
 
 /**
- * send_email function to send email notification
+ * send_cron_mail function to send email notification
  * https://github.com/PHPMailer/PHPMailer
  */
-function send_email($toEmail, $subject, $content, $attachment = []) {
+function send_cron_mail($toEmail, $subject, $content, $attachment = []) {
+
+    global $email_service;
+    require '../database/constants.php';
 
     if (SEND_EMAIL === TRUE) {
-
         // PHPMailer Mail Configuration
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = EMAIL_HOST;
-        $mail->SMTPAuth = EMAIL_AUTH;
-        $mail->Username = EMAIL_USERNAME;
-        $mail->Password = EMAIL_PASSWORD;
-        $mail->SMTPSecure = EMAIL_SECURE;
-        $mail->Port = EMAIL_PORT;
+        $mail->Host = $email_service['email_host'];
+        $mail->SMTPAuth = TRUE;
+        $mail->Username = $email_service['email_username'];
+        $mail->Password = $email_service['password'];
+        $mail->SMTPSecure = $email_service['email_secure'];
+        // $mail->SMTPDebug = TRUE;
+        $mail->Port = $email_service['email_port'];
         
         // Set From Email Address
-        $mail->setFrom(EMAIL_USERNAME);
+        $mail->setFrom($email_service['email_username']);
         // Set To Email Address
         $mail->addAddress($toEmail);
         
@@ -265,17 +343,17 @@ function send_email($toEmail, $subject, $content, $attachment = []) {
         }
         
         // Sending the email
-        $mail->send();
-    }
-}
-
-function get_staff_email($staff_id) {
-    require '../database/config.php';
-    $query = "SELECT email from tbl_staff WHERE id='$staff_id'";
-    $query_run = mysqli_query($conn, $query);
-    if ($query_run) {
-        $row = mysqli_fetch_array($query_run);
-        return $row['email'];
+        try {
+            if ($mail->send()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
+            return false;
+        }
+    } else {
+        return false;
     }
 }
 
@@ -315,13 +393,22 @@ function pdf_multi_row($left, $right, $pdf, $left_width = 40)
     $pdf->SetXY($pdf->GetX(), $ynew);
 }
 
-
 function get_staff_name($staff_id) {
-    require '../database/config.php';
+    global $conn;
     $query = "SELECT tbl_staff.firstname, tbl_staff.lastname FROM tbl_staff WHERE tbl_staff.id='".$staff_id."'";
     $query_run = mysqli_query($conn,$query);
     if ($query_run) {
         $row = mysqli_fetch_array($query_run);
         return $row['firstname'] . ' ' . $row['lastname'];
+    }
+}
+
+function get_staff_email($staff_id) {
+    global $conn;
+    $query = "SELECT email from tbl_staff WHERE id='$staff_id'";
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $row = mysqli_fetch_array($query_run);
+        return $row['email'];
     }
 }

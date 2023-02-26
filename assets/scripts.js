@@ -23,8 +23,9 @@ $(function () {
         xmlhttp.open('GET','cron_job.php',false);
         xmlhttp.send(null);
         // document.getElementById('statusshow').innerHTML = xmlhttp.responseText;
-    },(60000 * 1));
+    },(60000 * 30));
     // (60000 * 1) => one minute
+    // (60000 * 30) => 30 minutes
     // (60000 * 120) => 2 hours
 
     $("#student_form").validate({
@@ -118,6 +119,11 @@ $(function () {
         dept_slug = dept_slug.split(" ").join("-").toLowerCase();
 
         $('#deptslug').val(dept_slug);
+    });
+
+    $("body").on('change', '#email_service_form input[name=email]', function () {
+        var dept_slug = $('#email').val();
+        $('#email_service_form #email_username').val(dept_slug);
     });
 
     // When department in room page changes

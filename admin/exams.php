@@ -34,7 +34,7 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                         </thead>
                         <tbody>
                         <?php
-                            $query = "SELECT tbl_exams.*, tbl_department.deptname AS deptname, tbl_batch.batchyear AS batchyear FROM tbl_exams INNER JOIN tbl_department ON tbl_exams.exam_dept = tbl_department.id INNER JOIN tbl_batch ON tbl_exams.exam_batch = tbl_batch.id;";
+                            $query = "SELECT tbl_exams.*, tbl_department.deptname AS deptname, tbl_batch.batchyear AS batchyear FROM tbl_exams INNER JOIN tbl_department ON tbl_exams.exam_dept = tbl_department.id INNER JOIN tbl_batch ON tbl_exams.exam_batch = tbl_batch.id ORDER BY tbl_exams.exam_date DESC, tbl_exams.id ASC;";
                             $query_run = mysqli_query($conn, $query);
 
                             if (mysqli_num_rows($query_run) > 0) {

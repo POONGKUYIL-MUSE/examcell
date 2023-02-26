@@ -2,6 +2,7 @@
 session_start();
 include '../helpers/basic_helper.php';
 
+// echo md5('Student@123');
 echo site_header();
 
 if (isset($_SESSION['email']) && isset($_SESSION['id'])) {

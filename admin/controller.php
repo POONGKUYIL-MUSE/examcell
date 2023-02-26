@@ -522,7 +522,7 @@ if (isset($_POST['save_exam'])) {
     $exam_date = mysqli_real_escape_string($conn, $_POST['exam_date']);
     $exam_date = date("Y-m-d", strtotime($exam_date));
 
-    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 2day'));
 
     $query = "INSERT INTO tbl_exams (exam_name, exam_subject_name, exam_subject_code, exam_date, exam_start_time, exam_end_time, exam_dept, exam_batch, notify_date) VALUES 
     ('$exam_name', '$exam_subject_name', '$exam_subject_code', '$exam_date', '$exam_start_time', '$exam_end_time', '$exam_dept', '$exam_batch', '$notify_date')";
@@ -554,7 +554,7 @@ if (isset($_POST['update_exam'])) {
     $exam_date = mysqli_real_escape_string($conn, $_POST['exam_date']);
     $exam_date = date("Y-m-d", strtotime($exam_date));
 
-    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 2day'));
 
     $query = "UPDATE tbl_exams SET exam_name='$exam_name', exam_subject_name='$exam_subject_name', exam_subject_code='$exam_subject_code', exam_date='$exam_date', exam_start_time='$exam_start_time', exam_end_time='$exam_end_time', exam_dept='$exam_dept', exam_batch='$exam_batch', status='$exam_status', notify_date='$notify_date'";
     $query .=  "WHERE id='$exam_id' ";
@@ -748,7 +748,7 @@ if (isset($_POST['save_halls'])) {
     $hall_date = $_POST['exam_date'];
     $hall_date = date("Y-m-d", strtotime($hall_date));
 
-    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 1day'));
+    $notify_date = date('Y-m-d', strtotime($_POST['exam_date'] . '- 2day'));
 
     $start_time = $_POST['start_time'];
     $end_time = $_POST['end_time'];
@@ -1476,6 +1476,83 @@ if (isset($_POST['hall_pdf_maker'])) {
 
 }
 
+if (isset($_POST['save_email_service'])) {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $email_username = mysqli_real_escape_string($conn, $_POST['email_username']);
+    $email_host = mysqli_real_escape_string($conn, $_POST['email_host']);
+    $email_secure = mysqli_real_escape_string($conn, $_POST['email_secure']);
+    $email_port = mysqli_real_escape_string($conn, $_POST['email_port']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
+
+    $properties = [];
+    $properties['email_username'] = $email_username;
+    $properties['email_host'] = $email_host;
+    $properties['email_secure'] = $email_secure;
+    $properties['email_port'] = $email_port;
+    $properties['password'] = $password;
+
+    $email_properties = json_encode($properties);
+
+    $query = "INSERT INTO tbl_email_service (email,properties,status,created_at,created_by,updated_at,updated_by) VALUES 
+    ('$email','$email_properties','',NOW(),1,NOW(),1)";
+
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        $_SESSION['message'] = "Email Service Added Successfully";
+        header("Location: email_services.php");
+        exit(0);
+    } else {
+        $_SESSION['message'] = "Email Service Not Added";
+        header("Location: email_service_create_edit.php");
+        exit(0);
+    }
+}
+
+if (isset($_POST['update_email_service'])) {
+    $service_id = mysqli_real_escape_string($conn, $_POST['id']);
+
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $email_username = mysqli_real_escape_string($conn, $_POST['email_username']);
+    $email_host = mysqli_real_escape_string($conn, $_POST['email_host']);
+    $email_secure = mysqli_real_escape_string($conn, $_POST['email_secure']);
+    $email_port = mysqli_real_escape_string($conn, $_POST['email_port']);
+
+    $properties = [];
+    $properties['email_username'] = $email_username;
+    $properties['email_host'] = $email_host;
+    $properties['email_secure'] = $email_secure;
+    $properties['email_port'] = $email_port;
+    
+    if (!empty($_POST['password'])) {
+        $password = mysqli_real_escape_string($conn, $_POST['password']);
+
+    } else {
+        $query = "SELECT properties FROM tbl_email_service WHERE id='$service_id'";
+        $query_run = mysqli_query($conn,$query);
+        if ($query_run) {
+            $row = mysqli_fetch_array($query_run);
+            $p = json_decode($row['properties']);
+            $password = $p->password;
+        }
+    }
+    $properties['password'] = $password;
+
+    $email_properties = json_encode($properties);
+
+    $query = "UPDATE tbl_email_service SET email='$email', properties='$email_properties', updated_at=NOW(), updated_by=1 ";
+    $query .=  "WHERE id='$service_id' ";
+    $query_run = mysqli_query($conn, $query);    
+
+    if ($query_run) {
+        $_SESSION['message'] = "Email Service Updated Successfully";
+        header("Location: email_services.php");
+        exit(0);
+    } else {
+        $_SESSION['message'] = "Email Service Not Updated";
+        header("Location: email_service_create_edit.php?id=" . $service_id);
+        exit(0);
+    }
+}
 
 /**
  * Helper function for PDF multi row
@@ -1732,7 +1809,38 @@ if (isset($_POST['check_email_exists'])) {
             $mail_content .= 'To update your password use below code,<br>';
             $mail_content .= 'pass_code : ' . $random_pass_code;
 
+            $mail_status = false;
+
             if (send_email($email, 'Password Reset Verification', $mail_content)) {
+                $mail_status = true;
+            } else {
+                $mail_status = false;
+                // update service
+                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
+                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
+                mysqli_query($conn, $query);
+
+                $email_service = [];
+                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                $query_run = mysqli_query($conn, $query);
+                if (mysqli_num_rows($query_run) > 0) {
+                    foreach ($query_run as $service) {
+                        $email_service['id'] = $service['id'];
+                        $email_service['email'] = $service['email'];
+                        $properties = json_decode($service['properties']);
+                        $email_service['email_username'] = $properties->email_username;
+                        $email_service['email_host'] = $properties->email_host;
+                        $email_service['email_secure'] = $properties->email_secure;
+                        $email_service['email_port'] = $properties->email_port;
+                        $email_service['password'] = $properties->password;
+                        $email_service['status'] = $service['status'];
+                    }
+                } else {
+                    exit();
+                }
+            }
+
+            if ($mail_status == true) {
                 echo json_encode([
                     "success" => true,
                     "staff_id" => $row['id']
@@ -1904,20 +2012,40 @@ function get_exam_dept($dept) {
  */
 function send_email($toEmail, $subject, $content, $attachment = []) {
 
+    require '../database/constants.php';
+    $email_service = [];
+
+    $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $service) {
+            $email_service['id'] = $service['id'];
+            $email_service['email'] = $service['email'];
+            $properties = json_decode($service['properties']);
+            $email_service['email_username'] = $properties->email_username;
+            $email_service['email_host'] = $properties->email_host;
+            $email_service['email_secure'] = $properties->email_secure;
+            $email_service['email_port'] = $properties->email_port;
+            $email_service['password'] = $properties->password;
+            $email_service['status'] = $service['status'];
+        }
+    }
+
     if (SEND_EMAIL === TRUE) {
         
         // PHPMailer Mail Configuration
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = EMAIL_HOST;
-        $mail->SMTPAuth = EMAIL_AUTH;
-        $mail->Username = EMAIL_USERNAME;
-        $mail->Password = EMAIL_PASSWORD;
-        $mail->SMTPSecure = EMAIL_SECURE;
-        $mail->Port = EMAIL_PORT;
+        $mail->Host = $email_service['email_host'];
+        $mail->SMTPAuth = TRUE;
+        $mail->Username = $email_service['email_username'];
+        $mail->Password = $email_service['password'];
+        $mail->SMTPSecure = $email_service['email_secure'];
+        // $mail->SMTPDebug = TRUE;
+        $mail->Port = $email_service['email_port'];
         
         // Set From Email Address
-        $mail->setFrom(EMAIL_USERNAME);
+        $mail->setFrom($email_service['email_username']);
         // Set To Email Address
         $mail->addAddress($toEmail);
         
@@ -1931,9 +2059,13 @@ function send_email($toEmail, $subject, $content, $attachment = []) {
         }
         
         // Sending the email
-        if ($mail->send()) {
-            return true;
-        } else {
+        try {
+            if ($mail->send()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
             return false;
         }
     }

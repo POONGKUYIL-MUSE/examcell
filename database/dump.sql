@@ -103,6 +103,23 @@ INSERT INTO `tbl_department` (`id`, `deptname`, `deptslug`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tbl_email_service`
+--
+CREATE TABLE `tbl_email_service` (
+ `id` int(11) NOT NULL,
+ `email` varchar(255) NOT NULL,
+ `properties` longtext DEFAULT NULL,
+ `status`  int(11) NOT NULL,
+ `reset_datetime` datetime DEFAULT NULL,
+ `created_at` datetime NOT NULL,
+ `created_by` int(11) NOT NULL,
+ `updated_at` datetime NOT NULL,
+ `updated_by` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tbl_exams`
 --
 
@@ -113,6 +130,7 @@ CREATE TABLE `tbl_exams` (
   `exam_subject_code` varchar(100) NOT NULL,
   `exam_date` date NOT NULL,
   `notify_date` datetime NOT NULL,
+  `batched` int(11) DEFAULT -1,
   `is_notified` datetime DEFAULT NULL,
   `exam_start_time` varchar(64) NOT NULL,
   `exam_end_time` varchar(64) DEFAULT NULL,
@@ -263,7 +281,8 @@ CREATE TABLE `tbl_hall_student`(
   `id` int(11) NOT NULL,
   `hall_id` int(11) NOT NULL,
   `exam_id` int(11) NOT NULL,
-  `s_id` int(11) NOT NULL
+  `s_id` int(11) NOT NULL,
+  `is_notified` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -294,6 +313,12 @@ ALTER TABLE `tbl_department`
 -- Indexes for table `events`
 --
 ALTER TABLE `events`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tbl_email_service`
+--
+ALTER TABLE `tbl_email_service`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -372,6 +397,12 @@ ALTER TABLE `tbl_department`
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tbl_email_service`
+--
+ALTER TABLE `tbl_email_service`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
