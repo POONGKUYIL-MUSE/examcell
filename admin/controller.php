@@ -1,6 +1,7 @@
 <?php
 session_start();
 require '../database/config.php';
+require '../database/constants.php';
 include_once('../assets/tcpdf/tcpdf.php');
 
 require '../assets/phpmailer/src/PHPMailer.php';

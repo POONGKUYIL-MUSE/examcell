@@ -4,6 +4,7 @@ include_once 'GoogleCalendarApi.class.php';
      
 // Include database configuration file 
 require_once '../database/config.php'; 
+require_once '../database/constants.php'; 
 
 session_start();
  

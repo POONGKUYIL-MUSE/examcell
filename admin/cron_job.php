@@ -12,6 +12,17 @@ $today = date('Y-m-d');
 
 $email_service = [];
 
+// Activate suspended email services
+$query = "SELECT * FROM tbl_email_service WHERE status=-1 AND reset_datetime < NOW();";
+$query_run = mysqli_query($conn,$query);
+if (mysqli_num_rows($query_run) > 0) {
+    foreach ($query_run as $service) {
+        $query = "UPDATE tbl_email_service SET status=0,reset_datetime=null WHERE id='".$service['id']."'";
+        mysqli_query($conn, $query);
+    }
+}
+
+// Set an active email service
 $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
 $query_run = mysqli_query($conn, $query);
 if (mysqli_num_rows($query_run) > 0) {
@@ -185,8 +196,9 @@ if (mysqli_num_rows($query_run) > 0) {
                 continue;
             } else {
                 // update service
-                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
-                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
+                $current_time = date('Y-m-d H:i:s');
+                $reset_datetime = date('Y-m-d H:i:s', strtotime($current_time . '+ 1day'));
+                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_datetime' WHERE id='".$email_service['id']."'";
                 mysqli_query($conn, $query);
 
                 global $email_service;

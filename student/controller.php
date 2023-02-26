@@ -82,21 +82,41 @@ if (isset($_POST['check_email_exists'])) {
  * https://github.com/PHPMailer/PHPMailer
  */
 function send_email($toEmail, $subject, $content, $attachment = []) {
+    
+    require '../database/constants.php';
+    $email_service = [];
+
+    $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+    $query_run = mysqli_query($conn, $query);
+    if (mysqli_num_rows($query_run) > 0) {
+        foreach ($query_run as $service) {
+            $email_service['id'] = $service['id'];
+            $email_service['email'] = $service['email'];
+            $properties = json_decode($service['properties']);
+            $email_service['email_username'] = $properties->email_username;
+            $email_service['email_host'] = $properties->email_host;
+            $email_service['email_secure'] = $properties->email_secure;
+            $email_service['email_port'] = $properties->email_port;
+            $email_service['password'] = $properties->password;
+            $email_service['status'] = $service['status'];
+        }
+    }
 
     if (SEND_EMAIL === TRUE) {
         
         // PHPMailer Mail Configuration
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = EMAIL_HOST;
-        $mail->SMTPAuth = EMAIL_AUTH;
-        $mail->Username = EMAIL_USERNAME;
-        $mail->Password = EMAIL_PASSWORD;
-        $mail->SMTPSecure = EMAIL_SECURE;
-        $mail->Port = EMAIL_PORT;
+        $mail->Host = $email_service['email_host'];
+        $mail->SMTPAuth = TRUE;
+        $mail->Username = $email_service['email_username'];
+        $mail->Password = $email_service['password'];
+        $mail->SMTPSecure = $email_service['email_secure'];
+        // $mail->SMTPDebug = TRUE;
+        $mail->Port = $email_service['email_port'];
         
         // Set From Email Address
-        $mail->setFrom(EMAIL_USERNAME);
+        $mail->setFrom($email_service['email_username']);
         // Set To Email Address
         $mail->addAddress($toEmail);
         
@@ -110,9 +130,13 @@ function send_email($toEmail, $subject, $content, $attachment = []) {
         }
         
         // Sending the email
-        if ($mail->send()) {
-            return true;
-        } else {
+        try {
+            if ($mail->send()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
             return false;
         }
     }
