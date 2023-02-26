@@ -100,6 +100,11 @@ function get_menu_item()
                         <a href='block.php' class='nav-link px-0'> <span class='d-none d-sm-inline'>Blocks</span></a>
                     </li>
                 </ul>
+            </li>
+            <li class='nav-item'>
+                <a href='email_services.php' class='nav-link align-middle px-0'>
+                    <i class='fs-4 bi-house'></i> <span class='ms-1 d-none d-sm-inline'>Manage Email Services</span>
+                </a>
             </li>";
     } else {
         $content .= "
