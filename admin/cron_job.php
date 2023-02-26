@@ -171,8 +171,8 @@ if (mysqli_num_rows($query_run) > 0) {
 
         $datetime = date('dmY_hms');
         $file_name = "HSA_" . $datetime . ".pdf";
+        ob_end_clean();
         
-
         if ($hall_details['staff'] != null && $hall_details['staff'] != 0) {
             $staff_mail = get_staff_email($hall_details['staff']);
             $mail_content = 'Hi ' . get_staff_name($hall_details['staff']) . '!<br>';
