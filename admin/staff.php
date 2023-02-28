@@ -44,7 +44,16 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                         <td><?= $staff['firstname'] . ' ' . $staff['lastname']; ?></td>
                                         <td><?= $staff['email']; ?></td>
                                         <td><?= $staff['phonenumber']; ?></td>
-                                        <td><?= $staff['active']; ?></td>
+                                        <td>
+                                            <?php
+                                                if ($staff['admin'] == 0) {
+                                                $statuses = ['Inactive', 'Active'];
+                                            ?>
+                                            <form action="controller.php" method="POST" class="d-inline">
+                                                <button type="submit" name="change_staff_status" value="<?php echo $statuses[!$staff['active']] . ' ' . $staff['id']; ?>" class="btn btn-sm btn-info"><?php echo $statuses[!$staff['active']]; ?></button>
+                                            </form>
+                                            <?php } ?>
+                                        </td>
                                         <td>
                                             <?php if ($staff['admin'] == 0) { ?>
                                             <!-- <a href="staff-view.php?id=<?= $staff['id']; ?>" class="btn btn-info btn-sm">View</a> -->

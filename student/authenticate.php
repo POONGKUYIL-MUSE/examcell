@@ -17,7 +17,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
         // Hashing the password
         $password = md5($password);
 
-        $sql = "SELECT * FROM tbl_student WHERE email='$email' AND password='$password'";
+        $sql = "SELECT * FROM tbl_student WHERE email='$email' AND password='$password' AND active=1";
         $result = mysqli_query($conn, $sql);
 
         if (mysqli_num_rows($result) === 1) {

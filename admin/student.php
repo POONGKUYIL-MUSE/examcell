@@ -120,7 +120,14 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                         <td><?= $student['firstname'] . ' ' . $student['lastname']; ?></td>
                                         <td><?= $student['email'] . '<br>' . $student['phonenumber']; ?></td>
                                         <td><?= $student['deptname'] . '<br>' . $student['batchyear']; ?></td>
-                                        <td><?= $student['active']; ?></td>
+                                        <td>
+                                            <?php
+                                                $statuses = ['Inactive', 'Active'];
+                                            ?>
+                                            <form action="controller.php" method="POST" class="d-inline">
+                                                <button type="submit" name="change_student_status" value="<?php echo $statuses[!$student['active']] . ' ' . $student['id']; ?>" class="btn btn-sm btn-info"><?php echo $statuses[!$student['active']]; ?></button>
+                                            </form>
+                                        </td>
                                         <td>
                                             <!-- <a href="student-view.php?id=<?= $student['id']; ?>" class="btn btn-info btn-sm">View</a> -->
                                             <a href="student_create_edit.php?id=<?= $student['id']; ?>" class="btn btn-info btn-sm">Edit</a>

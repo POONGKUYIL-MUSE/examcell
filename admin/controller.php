@@ -485,7 +485,7 @@ if (isset($_POST['get_exam_capacity'])) {
 
         $deptid = $_POST['deptid'];
         $batchid = $_POST['batchid'];
-        $query = "SELECT * FROM tbl_student WHERE student_department='$deptid' AND student_batch='$batchid'";
+        $query = "SELECT * FROM tbl_student WHERE student_department='$deptid' AND student_batch='$batchid' WHERE active=1";
 
         $student_capacity = 0;
 
@@ -619,7 +619,7 @@ if (isset($_POST['get_exam_based_on_dates'])) {
                 $temp['exam_start_time'] = $exam['exam_start_time'];
                 $temp['exam_end_time'] = $exam['exam_end_time'];
 
-                $query = "SELECT * FROM tbl_student WHERE student_department='" . $exam['exam_dept'] . "' AND student_batch='" . $exam['exam_batch'] . "'";
+                $query = "SELECT * FROM tbl_student WHERE student_department='" . $exam['exam_dept'] . "' AND student_batch='" . $exam['exam_batch'] . "' AND active=1";
                 $query_run_2 = mysqli_query($conn, $query);
                 if (mysqli_num_rows($query_run_2) > 0) {
                     $temp['exam_capacity'] = mysqli_num_rows($query_run_2);
@@ -774,7 +774,7 @@ if (isset($_POST['save_halls'])) {
                 $temp['exam_batch'] = $exam['exam_batch'];
                 // $temp['exam_capacity'] = $exam['exam_capacity'];
 
-                $query = "SELECT * FROM tbl_student WHERE student_department='" . $exam['exam_dept'] . "' AND student_batch='" . $exam['exam_batch'] . "' ORDER BY tbl_student.regno ASC";
+                $query = "SELECT * FROM tbl_student WHERE student_department='" . $exam['exam_dept'] . "' AND student_batch='" . $exam['exam_batch'] . "' AND active=1 ORDER BY tbl_student.regno ASC";
                 $query_run_2 = mysqli_query($conn, $query);
                 if (mysqli_num_rows($query_run_2) > 0) {
                     $temp['exam_capacity'] = mysqli_num_rows($query_run_2);
@@ -991,7 +991,7 @@ if (isset($_POST['assign_invigilator'])) {
         $hall_id = $_POST['hall_id'];
         $staff_id = $_POST['assign_staff'];
 
-        $query = "UPDATE tbl_halls SET staff=" . $staff_id . " WHERE id='" . $hall_id . "'";
+        $query = "UPDATE tbl_halls SET staff=" . $staff_id . " WHERE id='" . $hall_id . "' active=1";
         $query_run = mysqli_query($conn, $query);
 
         if ($query_run) {
@@ -1042,7 +1042,7 @@ if (isset($_POST['student_sheet_pdf_maker'])) {
 
         $students = [];
         if ($exam_dept != 0 && $exam_batch != 0) {
-            $query = "SELECT * FROM tbl_student WHERE student_department='".$exam_dept."' AND student_batch='".$exam_batch."' ORDER BY tbl_student.regno ASC";
+            $query = "SELECT tbl_student.id as stud_id, tbl_student.regno, tbl_student.firstname, tbl_student.lastname, tbl_student.student_department, tbl_student.student_batch FROM tbl_hall_student inner join tbl_student on tbl_student.id=tbl_hall_student.s_id WHERE tbl_hall_student.exam_id='".$exam_id."' ORDER BY tbl_student.regno ASC;";
             $query_run = mysqli_query($conn, $query);
             if (mysqli_num_rows($query_run) > 0) {
                 foreach ($query_run as $student) {
@@ -1050,6 +1050,17 @@ if (isset($_POST['student_sheet_pdf_maker'])) {
                     $t['regno'] = $student['regno'];
                     $t['student_name'] = $student['firstname'] . ' ' . $student['lastname'];
                     array_push($students, $t);
+                }
+            } else {
+                $query = "SELECT * FROM tbl_student WHERE student_department='".$exam_dept."' AND student_batch='".$exam_batch."' AND active=1 ORDER BY tbl_student.regno ASC";
+                $query_run = mysqli_query($conn, $query);
+                if (mysqli_num_rows($query_run) > 0) {
+                    foreach ($query_run as $student) {
+                        $t = [];
+                        $t['regno'] = $student['regno'];
+                        $t['student_name'] = $student['firstname'] . ' ' . $student['lastname'];
+                        array_push($students, $t);
+                    }
                 }
             }
         }
@@ -1418,8 +1429,6 @@ if (isset($_POST['hall_pdf_maker'])) {
 
     $image_file = '../assets/images/logo.jpg';
     $pdf->Image($image_file, 10, 10, 190, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
-    $pdf->ln(10);
-    $pdf->ln(10);
     $pdf->ln(10);
     $pdf->ln(10);
     // $pdf->ln(10);
@@ -1974,6 +1983,44 @@ if (isset($_POST['exam_set_event'])) {
                 header("Location: $googleOauthURL"); 
             }
         }
+    }
+}
+
+if (isset($_POST['change_student_status'])) {
+    $change_student_status = explode(' ', $_POST['change_student_status']);
+    $stud_status = $change_student_status[0];
+    $stud_id = $change_student_status[1];
+
+    if ($stud_status == 'Active') {
+        $query = "UPDATE tbl_student SET active=1 WHERE id='".$stud_id."'";
+    } else {
+        $query = "UPDATE tbl_student SET active=0 WHERE id='".$stud_id."'";
+    }    
+    
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        header("Location: student.php");
+    } else {
+        header("Location: student.php");
+    }
+}
+
+if (isset($_POST['change_staff_status'])) {
+    $change_staff_status = explode(' ', $_POST['change_staff_status']);
+    $stud_status = $change_staff_status[0];
+    $stud_id = $change_staff_status[1];
+
+    if ($stud_status == 'Active') {
+        $query = "UPDATE tbl_staff SET active=1 WHERE id='".$stud_id."'";
+    } else {
+        $query = "UPDATE tbl_staff SET active=0 WHERE id='".$stud_id."'";
+    }    
+    
+    $query_run = mysqli_query($conn, $query);
+    if ($query_run) {
+        header("Location: staff.php");
+    } else {
+        header("Location: staff.php");
     }
 }
 

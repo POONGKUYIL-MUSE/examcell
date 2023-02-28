@@ -145,8 +145,6 @@ if (mysqli_num_rows($query_run) > 0) {
         $pdf->Image($image_file, 10, 10, 190, '', 'JPG', '', 'C', false, 300, '', false, false, 0, true, false, false);
         $pdf->ln(10);
         $pdf->ln(10);
-        $pdf->ln(10);
-        $pdf->ln(10);
         // $pdf->ln(10);
         pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
 
@@ -289,9 +287,9 @@ if (mysqli_num_rows($query_run) > 0) {
             if ($query_run) {
                 $row = mysqli_fetch_assoc($query_run);
                 if ($row['total'] == $row['notified']) {
-                    $query = "UPDATE tbl_exams SET batched=0 WHERE tbl_exams.id='$exam'";
+                    $query = "UPDATE tbl_exams SET batched=0, is_notified=NOW() WHERE tbl_exams.id='$exam'";
                 } else {
-                    $query = "UPDATE tbl_exams SET batched=1 WHERE tbl_exams.id='$exam'";
+                    $query = "UPDATE tbl_exams SET batched=1, is_notified=NOW() WHERE tbl_exams.id='$exam'";
                 }
 
                 $qr = mysqli_query($conn, $query);

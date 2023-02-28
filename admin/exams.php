@@ -57,13 +57,23 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                         <td>
                                             <small>
                                             <?php
-                                                $query = "SELECT count(*) as student_strength FROM tbl_student WHERE student_department='".$exam['exam_dept']."' AND student_batch='".$exam['exam_batch']."';";
+                                                $student_strength = 0;
+                                                $query = "SELECT count(*) as student_strength FROM tbl_hall_student WHERE exam_id='".$exam['id']."'";
                                                 $query_run = mysqli_query($conn, $query);
-
-                                                if (mysqli_num_rows($query_run) > 0) {
+                                                 if (mysqli_num_rows($query_run) > 0) {
                                                     $row = mysqli_fetch_assoc($query_run);
-                                                    echo "(" . $row['student_strength'] . ")";
+                                                    if ($row['student_strength'] > 0) {
+                                                        $student_strength = $row['student_strength'];
+                                                    } else {
+                                                        $query = "SELECT count(*) as student_strength FROM tbl_student WHERE student_department='".$exam['exam_dept']."' AND student_batch='".$exam['exam_batch']."' AND active=1;";
+                                                        $query_run = mysqli_query($conn, $query);
+                                                        if (mysqli_num_rows($query_run) > 0) {
+                                                            $row = mysqli_fetch_assoc($query_run);
+                                                            $student_strength = $row['student_strength'];
+                                                        }
+                                                    }
                                                 }
+                                                echo "(" . $student_strength . ")";
                                             ?>
                                             </small>
                                         </td>
@@ -74,14 +84,22 @@ if (isset($_SESSION['email']) && isset($_SESSION['id'])) {
                                                 $classess = ['bg-secondary', 'bg-primary', 'bg-info', 'bg-success'];
 
                                                 echo '<span class="text-white badge '.$classess[$exam['status']].'">' . $statuses[$exam['status']] . '</span>';
-
-                                                if ($exam['is_notified'] != null) {
-                                                    echo " | <i data-bs-toggle='tooltip' title='".$exam['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
-                                                }
-
+                                                
                                                 if ($exam['event_id'] != 0) {
                                                     echo ' | Event Created';
                                                 }
+
+                                                if ($exam['batched'] == 0 || $exam['batched'] == 1) {
+                                                    echo "<br>";
+                                                    if ($exam['batched'] == 1) {
+                                                        echo "| Batched";
+                                                    }
+                                                    if ($exam['batched'] == 0) {
+                                                        echo "| Notified";
+                                                    }
+                                                    echo " | <i data-bs-toggle='tooltip' title='".$exam['is_notified']."' class='fa fa-calendar-check-o' aria-hidden='true'></i>";
+                                                }
+
                                             ?>
                                             </small>
                                         </td>
