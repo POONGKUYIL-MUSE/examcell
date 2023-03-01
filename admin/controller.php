@@ -991,7 +991,7 @@ if (isset($_POST['assign_invigilator'])) {
         $hall_id = $_POST['hall_id'];
         $staff_id = $_POST['assign_staff'];
 
-        $query = "UPDATE tbl_halls SET staff=" . $staff_id . " WHERE id='" . $hall_id . "' active=1";
+        $query = "UPDATE tbl_halls SET staff=" . $staff_id . " WHERE id='" . $hall_id . "'";
         $query_run = mysqli_query($conn, $query);
 
         if ($query_run) {

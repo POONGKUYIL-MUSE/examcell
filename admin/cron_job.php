@@ -39,12 +39,32 @@ if (mysqli_num_rows($query_run) > 0) {
     }
 }
 
+// Change batched and isnotified field of finished and ongoing exams
+$query = "SELECT * FROM tbl_exams WHERE tbl_exams.exam_date<='$today'";
+$query_run = mysqli_query($conn, $query);
+if (mysqli_num_rows($query_run) > 0) {
+    foreach ($query_run as $exam) {
+        $query_update = "UPDATE tbl_exams SET batched=0, is_notified=NOW() WHERE id='" . $exam['id'] . "'";
+        $query_run = mysqli_query($conn, $query_update);
+    }
+}
+
 // Status Check for tbl_exams status field
 $query = "SELECT * FROM tbl_exams WHERE tbl_exams.exam_date='$today' AND status != 2";
 $query_run = mysqli_query($conn, $query);
 if (mysqli_num_rows($query_run) > 0) {
     foreach ($query_run as $exam) {
         $query_update = "UPDATE tbl_exams SET status=2 WHERE id='" . $exam['id'] . "'";
+        $query_run = mysqli_query($conn, $query_update);
+    }
+}
+
+// Status Check for finished exam time
+$query = "SELECT * FROM tbl_exams WHERE tbl_exams.exam_date='$today' AND HOUR(tbl_exams.exam_start_time)<HOUR(NOW()) AND status != 3";
+$query_run = mysqli_query($conn, $query);
+if (mysqli_num_rows($query_run) > 0) {
+    foreach ($query_run as $exam) {
+        $query_update = "UPDATE tbl_exams SET status=3 WHERE id='" . $exam['id'] . "'";
         $query_run = mysqli_query($conn, $query_update);
     }
 }
@@ -60,7 +80,7 @@ if (mysqli_num_rows($query_run) > 0) {
 }
 
 // Mail Staff two day before the exam
-$query = "SELECT tbl_halls.id as hall_id, tbl_halls.*, tbl_room.id as room_id, tbl_room.*, tbl_department.deptname, tbl_block.block FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_department ON tbl_department.id=tbl_room.dept INNER JOIN tbl_block ON tbl_block.id=tbl_room.block WHERE (tbl_halls.staff != NULL OR tbl_halls.staff != 0) AND (tbl_halls.notify_date >= '$today' OR tbl_halls.date <= '$today') AND (DATE(tbl_halls.is_notified) != '$today' OR (tbl_halls.is_notified IS NULL)) LIMIT 4;";
+$query = "SELECT tbl_halls.id as hall_id, tbl_halls.*, tbl_room.id as room_id, tbl_room.*, tbl_department.deptname, tbl_block.block FROM tbl_halls INNER JOIN tbl_room ON tbl_room.id=tbl_halls.room INNER JOIN tbl_department ON tbl_department.id=tbl_room.dept INNER JOIN tbl_block ON tbl_block.id=tbl_room.block WHERE (tbl_halls.staff != NULL OR tbl_halls.staff != 0) AND (tbl_halls.notify_date <= '$today' AND tbl_halls.date >= '$today') AND (DATE(tbl_halls.is_notified) != '$today' OR (tbl_halls.is_notified IS NULL)) LIMIT 4;";
 $query_run = mysqli_query($conn, $query);
 if (mysqli_num_rows($query_run) > 0) {
     foreach ($query_run as $hall) {
@@ -225,7 +245,7 @@ if (mysqli_num_rows($query_run) > 0) {
 
 // Mail Students two day before the exam
 $exam_batched = [];
-$query = "SELECT tbl_hall_student.* FROM tbl_hall_student INNER JOIN tbl_exams ON tbl_exams.id=tbl_hall_student.exam_id WHERE (tbl_exams.notify_date >= '$today' OR tbl_exams.exam_date <= '$today') AND (tbl_exams.batched=-1 OR tbl_exams.batched=1) AND tbl_hall_student.is_notified IS NULL ORDER BY tbl_hall_student.id ASC LIMIT 9;";
+$query = "SELECT tbl_hall_student.* FROM tbl_hall_student INNER JOIN tbl_exams ON tbl_exams.id=tbl_hall_student.exam_id WHERE (tbl_exams.notify_date <= '$today' AND tbl_exams.exam_date >= '$today') AND (tbl_exams.batched=-1 OR tbl_exams.batched=1) AND tbl_hall_student.is_notified IS NULL ORDER BY tbl_hall_student.id ASC LIMIT 9;";
 $query_run = mysqli_query($conn, $query);
 if (mysqli_num_rows($query_run) > 0) {
     foreach ($query_run as $stud) {

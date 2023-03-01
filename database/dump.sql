@@ -137,7 +137,7 @@ CREATE TABLE `tbl_exams` (
   `exam_subject_name` varchar(100) NOT NULL,
   `exam_subject_code` varchar(100) NOT NULL,
   `exam_date` date NOT NULL,
-  `notify_date` datetime NOT NULL,
+  `notify_date` date NOT NULL,
   `batched` int(11) DEFAULT -1,
   `is_notified` datetime DEFAULT NULL,
   `exam_start_time` varchar(64) NOT NULL,
@@ -732,7 +732,7 @@ CREATE TABLE `tbl_halls`(
   `allocated` int(11) NOT NULL,
   `remaining` int(11) NOT NULL,
   `staff` int(11) NOT NULL,
-  `notify_date` datetime NOT NULL,
+  `notify_date` date NOT NULL,
   `is_notified` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
