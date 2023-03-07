@@ -1821,32 +1821,34 @@ if (isset($_POST['check_email_exists'])) {
 
             $mail_status = false;
 
-            if (send_email($email, 'Password Reset Verification', $mail_content)) {
-                $mail_status = true;
-            } else {
-                $mail_status = false;
-                // update service
-                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
-                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
-                mysqli_query($conn, $query);
-
-                $email_service = [];
-                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
-                $query_run = mysqli_query($conn, $query);
-                if (mysqli_num_rows($query_run) > 0) {
-                    foreach ($query_run as $service) {
-                        $email_service['id'] = $service['id'];
-                        $email_service['email'] = $service['email'];
-                        $properties = json_decode($service['properties']);
-                        $email_service['email_username'] = $properties->email_username;
-                        $email_service['email_host'] = $properties->email_host;
-                        $email_service['email_secure'] = $properties->email_secure;
-                        $email_service['email_port'] = $properties->email_port;
-                        $email_service['password'] = $properties->password;
-                        $email_service['status'] = $service['status'];
-                    }
+            if (SEND_EMAIL === TRUE) {
+                if (send_email($email, 'Password Reset Verification', $mail_content)) {
+                    $mail_status = true;
                 } else {
-                    exit();
+                    $mail_status = false;
+                    // update service
+                    $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
+                    $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
+                    mysqli_query($conn, $query);
+
+                    $email_service = [];
+                    $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                    $query_run = mysqli_query($conn, $query);
+                    if (mysqli_num_rows($query_run) > 0) {
+                        foreach ($query_run as $service) {
+                            $email_service['id'] = $service['id'];
+                            $email_service['email'] = $service['email'];
+                            $properties = json_decode($service['properties']);
+                            $email_service['email_username'] = $properties->email_username;
+                            $email_service['email_host'] = $properties->email_host;
+                            $email_service['email_secure'] = $properties->email_secure;
+                            $email_service['email_port'] = $properties->email_port;
+                            $email_service['password'] = $properties->password;
+                            $email_service['status'] = $service['status'];
+                        }
+                    } else {
+                        exit();
+                    }
                 }
             }
 

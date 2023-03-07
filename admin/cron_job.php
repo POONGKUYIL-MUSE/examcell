@@ -1,6 +1,7 @@
 <?php
 session_start();
 require '../database/config.php';
+require '../database/constants.php';
 include_once('../assets/tcpdf/tcpdf.php');
 
 require '../assets/phpmailer/src/PHPMailer.php';
@@ -17,7 +18,7 @@ $query = "SELECT * FROM tbl_email_service WHERE status=-1 AND reset_datetime < N
 $query_run = mysqli_query($conn,$query);
 if (mysqli_num_rows($query_run) > 0) {
     foreach ($query_run as $service) {
-        $query = "UPDATE tbl_email_service SET status=0,reset_datetime=null WHERE id='".$service['id']."'";
+        $query = "UPDATE tbl_email_service SET status=0,reset_datetime=null, updated_at=NOW() WHERE id='".$service['id']."'";
         mysqli_query($conn, $query);
     }
 }
@@ -207,36 +208,38 @@ if (mysqli_num_rows($query_run) > 0) {
             $mail_content = 'Hi ' . get_staff_name($hall_details['staff']) . '!<br>';
             $mail_content .= 'You are assigned as an invigilator to the exams that are conducted on <b>'.$hall_details['date'].'</b> at <b>'.$hall_details['start_time'] . ' to ' . $hall_details['end_time'].'</b>.<br>';
             $mail_content .= 'Please follow the seating arrangement plan as per the PDF attached below.';
-            if (send_cron_mail($staff_mail, 'Seating Allotment', $mail_content, [$file_name, $pdf->Output($file_name, 'S')])) {
-                $query = "UPDATE tbl_halls SET is_notified= NOW() WHERE id='" . $hall['hall_id'] . "'";
-                $query_run = mysqli_query($conn, $query);
-                sleep(2);
-                continue;
-            } else {
-                // update service
-                $current_time = date('Y-m-d H:i:s');
-                $reset_datetime = date('Y-m-d H:i:s', strtotime($current_time . '+ 1day'));
-                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_datetime' WHERE id='".$email_service['id']."'";
-                mysqli_query($conn, $query);
-
-                global $email_service;
-                $email_service = [];
-                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
-                $query_run = mysqli_query($conn, $query);
-                if (mysqli_num_rows($query_run) > 0) {
-                    foreach ($query_run as $service) {
-                        $email_service['id'] = $service['id'];
-                        $email_service['email'] = $service['email'];
-                        $properties = json_decode($service['properties']);
-                        $email_service['email_username'] = $properties->email_username;
-                        $email_service['email_host'] = $properties->email_host;
-                        $email_service['email_secure'] = $properties->email_secure;
-                        $email_service['email_port'] = $properties->email_port;
-                        $email_service['password'] = $properties->password;
-                        $email_service['status'] = $service['status'];
-                    }
+            if (SEND_EMAIL === TRUE) {
+                if (send_cron_mail($staff_mail, 'Seating Allotment', $mail_content, [$file_name, $pdf->Output($file_name, 'S')])) {
+                    $query = "UPDATE tbl_halls SET is_notified= NOW() WHERE id='" . $hall['hall_id'] . "'";
+                    $query_run = mysqli_query($conn, $query);
+                    sleep(2);
+                    continue;
                 } else {
-                    exit();
+                    // update service
+                    $current_time = date('Y-m-d H:i:s');
+                    $reset_datetime = date('Y-m-d H:i:s', strtotime($current_time . '+ 1day'));
+                    $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_datetime', updated_at=NOW() WHERE id='".$email_service['id']."'";
+                    mysqli_query($conn, $query);
+
+                    global $email_service;
+                    $email_service = [];
+                    $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                    $query_run = mysqli_query($conn, $query);
+                    if (mysqli_num_rows($query_run) > 0) {
+                        foreach ($query_run as $service) {
+                            $email_service['id'] = $service['id'];
+                            $email_service['email'] = $service['email'];
+                            $properties = json_decode($service['properties']);
+                            $email_service['email_username'] = $properties->email_username;
+                            $email_service['email_host'] = $properties->email_host;
+                            $email_service['email_secure'] = $properties->email_secure;
+                            $email_service['email_port'] = $properties->email_port;
+                            $email_service['password'] = $properties->password;
+                            $email_service['status'] = $service['status'];
+                        }
+                    } else {
+                        exit();
+                    }
                 }
             }
         }
@@ -263,38 +266,41 @@ if (mysqli_num_rows($query_run) > 0) {
             $mail_content .= 'Block: '.$room['block'].'<br>';
             $mail_content .= '<br><br>Thank You!';
             
-            if (send_cron_mail($student['email'], 'Exam Hall Allotment', $mail_content)) {
-                if (!in_array($stud['exam_id'], $exam_batched, true)) {
-                    array_push($exam_batched, $stud['exam_id']);
-                }
-                $query = "UPDATE tbl_hall_student SET is_notified=NOW() WHERE id='".$stud['id']."'";
-                $query_run = mysqli_query($conn, $query);
-                sleep(2);
-                continue;
-            } else {
-                // update service
-                $reset_date = date('Y-m-d H:i:s', strtotime($today . '+ 1day'));
-                $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_date' WHERE id='".$email_service['id']."'";
-                mysqli_query($conn, $query);
-    
-                global $email_service;
-                $email_service = [];
-                $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
-                $query_run = mysqli_query($conn, $query);
-                if (mysqli_num_rows($query_run) > 0) {
-                    foreach ($query_run as $service) {
-                        $email_service['id'] = $service['id'];
-                        $email_service['email'] = $service['email'];
-                        $properties = json_decode($service['properties']);
-                        $email_service['email_username'] = $properties->email_username;
-                        $email_service['email_host'] = $properties->email_host;
-                        $email_service['email_secure'] = $properties->email_secure;
-                        $email_service['email_port'] = $properties->email_port;
-                        $email_service['password'] = $properties->password;
-                        $email_service['status'] = $service['status'];
+            if (SEND_EMAIL === TRUE) {
+                if (send_cron_mail($student['email'], 'Exam Hall Allotment', $mail_content)) {
+                    if (!in_array($stud['exam_id'], $exam_batched, true)) {
+                        array_push($exam_batched, $stud['exam_id']);
                     }
+                    $query = "UPDATE tbl_hall_student SET is_notified=NOW() WHERE id='".$stud['id']."'";
+                    $query_run = mysqli_query($conn, $query);
+                    sleep(2);
+                    continue;
                 } else {
-                    exit();
+                    // update service
+                    $current_time = date('Y-m-d H:i:s');
+                    $reset_datetime = date('Y-m-d H:i:s', strtotime($current_time . '+ 1day'));
+                    $query = "UPDATE tbl_email_service SET status=-1, reset_datetime='$reset_datetime', updated_at=NOW() WHERE id='".$email_service['id']."'";
+                    mysqli_query($conn, $query);
+        
+                    global $email_service;
+                    $email_service = [];
+                    $query = "SELECT * FROM tbl_email_service WHERE status=0 OR status=1 ORDER BY status DESC LIMIT 1";
+                    $query_run = mysqli_query($conn, $query);
+                    if (mysqli_num_rows($query_run) > 0) {
+                        foreach ($query_run as $service) {
+                            $email_service['id'] = $service['id'];
+                            $email_service['email'] = $service['email'];
+                            $properties = json_decode($service['properties']);
+                            $email_service['email_username'] = $properties->email_username;
+                            $email_service['email_host'] = $properties->email_host;
+                            $email_service['email_secure'] = $properties->email_secure;
+                            $email_service['email_port'] = $properties->email_port;
+                            $email_service['password'] = $properties->password;
+                            $email_service['status'] = $service['status'];
+                        }
+                    } else {
+                        exit();
+                    }
                 }
             }
         }
@@ -382,8 +388,6 @@ function send_cron_mail($toEmail, $subject, $content, $attachment = []) {
         } catch (Exception $e) {
             return false;
         }
-    } else {
-        return false;
     }
 }
 
